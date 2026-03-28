@@ -1,4 +1,4 @@
-package com.example.Group_4_JavaGrader;
+package com.group4.javagrader;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
