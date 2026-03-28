@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:fragment="header">
+<body>
+<header class="site-header">
+    <div class="container header-inner">
+        <div class="brand-block">
+            <a class="brand-link" th:href="@{/dashboard}">Java Code Grader</a>
+            <span class="brand-subtitle">Group 4</span>
+        </div>
+        <nav class="top-nav">
+            <a class="nav-link" th:href="@{/dashboard}">Dashboard</a>
+            <a class="nav-link" th:href="@{/assignments/create}">Create Assignment</a>
+            <form th:action="@{/logout}" method="post" class="logout-form">
+                <button class="btn btn-secondary" type="submit">Logout</button>
+            </form>
+        </nav>
+    </div>
+</header>
+</body>
+</html>

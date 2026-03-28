@@ -35,3 +35,9 @@ build/
 ### Course Documents ###
 /*SRS*.docx
 /*.pdf
+
+### Local Planning Docs ###
+/phase-plan-final.md
+/team-conventions-final.md
+/ui-frozen-contract-final-no-sidebar.md
+/ui-frozen-base-final-no-sidebar/

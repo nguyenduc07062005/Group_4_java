@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Dashboard')}"></head>
+<body>
+<div class="app-shell">
+    <header th:replace="~{fragments/header :: header}"></header>
+
+    <main class="page-content">
+        <div th:replace="~{fragments/alerts :: alerts}"></div>
+
+        <div class="page-header">
+            <div>
+                <h1 class="page-title">Dashboard</h1>
+                <p class="page-subtitle">Phase 1 auth entry point for the Java Code Grader.</p>
+            </div>
+        </div>
+
+        <div class="content-card content-stack">
+            <p>You are signed in successfully.</p>
+            <div class="page-actions">
+                <a class="btn btn-secondary" th:href="@{/dashboard}">Refresh</a>
+            </div>
+        </div>
+    </main>
+
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+</div>
+</body>
+</html>
