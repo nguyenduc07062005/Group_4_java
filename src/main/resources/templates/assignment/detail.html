@@ -1,10 +1,154 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
-</head>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Assignment Detail')}"></head>
 <body>
-$END$
+<div class="app-shell">
+    <header th:replace="~{fragments/header :: header}"></header>
+
+    <div class="page-content">
+        <div class="app-layout">
+            <aside th:replace="~{fragments/sidebar :: sidebar('assignments')}"></aside>
+
+            <main class="content-stack">
+                <div th:replace="~{fragments/alerts :: alerts}"></div>
+
+                <section class="content-card">
+                    <div class="page-header">
+                        <div>
+                            <h1 class="page-title">Assignment Detail</h1>
+                            <p class="page-subtitle" th:text="${assignment.title}">Assignment detail.</p>
+                        </div>
+                        <div class="page-actions">
+                            <a class="btn btn-primary" th:href="@{/assignments/{assignmentId}/problems/create(assignmentId=${assignment.id})}">Add Problem</a>
+                            <a class="btn btn-secondary" th:href="@{/semesters/{id}(id=${assignment.semesterId})}">Back to Semester</a>
+                        </div>
+                    </div>
+
+                    <div class="detail-grid">
+                        <article class="info-card">
+                            <h3>Assignment Info</h3>
+                            <div class="info-list">
+                                <div class="info-row">
+                                    <span class="info-label">Assignment ID</span>
+                                    <strong th:text="${assignment.id}">1</strong>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Semester</span>
+                                    <strong th:text="${assignment.semesterCode + ' - ' + assignment.semesterName}">SP25</strong>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Mode</span>
+                                    <strong th:text="${assignment.gradingMode}">JAVA_CORE</strong>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Total Score</span>
+                                    <strong th:text="${assignment.totalScore}">100.00</strong>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Plagiarism Threshold</span>
+                                    <strong th:text="${assignment.plagiarismThreshold}">80.00</strong>
+                                </div>
+                            </div>
+                        </article>
+
+                        <article class="info-card">
+                            <h3>Setup Progress</h3>
+                            <div class="info-list">
+                                <div class="info-row">
+                                    <span class="info-label">Problems</span>
+                                    <strong th:text="${assignment.problemCount}">0</strong>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Test Cases</span>
+                                    <strong th:text="${assignment.testCaseCount}">0</strong>
+                                </div>
+                            </div>
+                            <p class="helper-text" th:if="${assignment.description != null}" th:text="${assignment.description}">Description</p>
+                        </article>
+                    </div>
+                </section>
+
+                <section class="table-card">
+                    <div class="page-header">
+                        <div>
+                            <h2 class="page-title">Problems</h2>
+                            <p class="page-subtitle">Each problem can immediately receive testcases from this page.</p>
+                        </div>
+                    </div>
+
+                    <div class="empty-state" th:if="${#lists.isEmpty(problems)}">
+                        <p>No problems yet for this assignment.</p>
+                    </div>
+
+                    <table class="data-table" th:unless="${#lists.isEmpty(problems)}">
+                        <thead>
+                        <tr>
+                            <th>Order</th>
+                            <th>Title</th>
+                            <th>Score</th>
+                            <th>Input/Output</th>
+                            <th>Test Cases</th>
+                            <th>Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="problem : ${problems}">
+                            <td th:text="${problem.problemOrder}">1</td>
+                            <td th:text="${problem.title}">Reverse String</td>
+                            <td th:text="${problem.maxScore}">10.00</td>
+                            <td th:text="${problem.inputMode + ' / ' + problem.outputComparisonMode}">STDIN / EXACT</td>
+                            <td th:text="${problem.testCaseCount}">0</td>
+                            <td>
+                                <div class="table-actions">
+                                    <a class="btn btn-primary" th:href="@{/problems/{problemId}/testcases/create(problemId=${problem.id})}">Add Test Case</a>
+                                </div>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </section>
+
+                <section class="content-stack" th:unless="${#lists.isEmpty(problems)}">
+                    <section class="info-card" th:each="problem : ${problems}">
+                        <div class="page-header">
+                            <div>
+                                <h3 class="section-title" th:text="${'Problem ' + problem.problemOrder + ': ' + problem.title}">Problem</h3>
+                                <p class="page-subtitle" th:text="${problem.inputMode + ' / ' + problem.outputComparisonMode + ' - Max score ' + problem.maxScore}">Mode</p>
+                            </div>
+                            <div class="page-actions">
+                                <a class="btn btn-secondary" th:href="@{/problems/{problemId}/testcases/create(problemId=${problem.id})}">Add Test Case</a>
+                            </div>
+                        </div>
+
+                        <div class="empty-state" th:if="${#lists.isEmpty(problem.testCases)}">
+                            <p>No testcases yet for this problem.</p>
+                        </div>
+
+                        <table class="data-table" th:unless="${#lists.isEmpty(problem.testCases)}">
+                            <thead>
+                            <tr>
+                                <th>Case</th>
+                                <th>Sample</th>
+                                <th>Input</th>
+                                <th>Expected Output</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="testCase : ${problem.testCases}">
+                                <td th:text="${testCase.caseOrder}">1</td>
+                                <td th:text="${testCase.sample ? 'Yes' : 'No'}">No</td>
+                                <td><pre class="mono-block" th:text="${testCase.inputData}">input</pre></td>
+                                <td><pre class="mono-block" th:text="${testCase.expectedOutput}">output</pre></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </section>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+</div>
 </body>
 </html>
