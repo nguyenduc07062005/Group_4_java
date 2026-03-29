@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Semester Detail')}"></head>
+<body>
+<div class="app-shell">
+    <header th:replace="~{fragments/header :: header}"></header>
+
+    <div class="page-content">
+        <div class="app-layout">
+            <aside th:replace="~{fragments/sidebar :: sidebar('semesters')}"></aside>
+
+            <main class="content-stack">
+                <div th:replace="~{fragments/alerts :: alerts}"></div>
+
+                <section class="content-card">
+                    <div class="page-header">
+                        <div>
+                            <h1 class="page-title">Semester Detail</h1>
+                            <p class="page-subtitle" th:text="${semester.code + ' - ' + semester.name}">Semester detail.</p>
+                        </div>
+                        <div class="page-actions">
+                            <a class="btn btn-primary" th:href="@{/assignments/create(semesterId=${semester.id})}">Create Assignment</a>
+                            <a class="btn btn-secondary" th:href="@{/dashboard}">Back to Dashboard</a>
+                        </div>
+                    </div>
+
+                    <div class="info-list">
+                        <div class="info-row">
+                            <span class="info-label">Semester ID</span>
+                            <strong th:text="${semester.id}">1</strong>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Date Range</span>
+                            <strong th:text="${semester.startDate + ' to ' + semester.endDate}">Dates</strong>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Assignments</span>
+                            <strong th:text="${#lists.size(assignments)}">0</strong>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="table-card">
+                    <div class="page-header">
+                        <div>
+                            <h2 class="page-title">Assignments</h2>
+                            <p class="page-subtitle">Assignments under this semester are ready for problem and testcase setup.</p>
+                        </div>
+                    </div>
+
+                    <div class="empty-state" th:if="${#lists.isEmpty(assignments)}">
+                        <p>No assignments yet for this semester.</p>
+                    </div>
+
+                    <table class="data-table" th:unless="${#lists.isEmpty(assignments)}">
+                        <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Mode</th>
+                            <th>Total Score</th>
+                            <th>Problems</th>
+                            <th>Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="assignment : ${assignments}">
+                            <td th:text="${assignment.title}">Lab 01</td>
+                            <td th:text="${assignment.gradingMode}">JAVA_CORE</td>
+                            <td th:text="${assignment.totalScore}">100.00</td>
+                            <td th:text="${assignment.problemCount}">0</td>
+                            <td>
+                                <div class="table-actions">
+                                    <a class="btn btn-secondary" th:href="@{/assignments/{id}(id=${assignment.id})}">View Detail</a>
+                                </div>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+</div>
+</body>
+</html>
