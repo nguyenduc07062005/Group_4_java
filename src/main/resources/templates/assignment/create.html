@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Create Assignment')}"></head>
+<body>
+<div class="app-shell">
+    <header th:replace="~{fragments/header :: header}"></header>
+
+    <div class="page-content">
+        <div class="app-layout">
+            <aside th:replace="~{fragments/sidebar :: sidebar('assignments')}"></aside>
+
+            <main class="content-stack">
+                <div th:replace="~{fragments/alerts :: alerts}"></div>
+
+                <section class="form-card">
+                    <div class="page-header">
+                        <div>
+                            <h1 class="page-title">Create Assignment</h1>
+                            <p class="page-subtitle">Assignments belong to a semester and lead directly into problem configuration.</p>
+                        </div>
+                        <div class="page-actions">
+                            <a class="btn btn-secondary" th:href="@{/dashboard}">Back to Dashboard</a>
+                        </div>
+                    </div>
+
+                    <div class="empty-state" th:if="${#lists.isEmpty(semesters)}">
+                        <p>No semesters available. Create a semester first, then come back to create an assignment.</p>
+                    </div>
+
+                    <form th:unless="${#lists.isEmpty(semesters)}"
+                          th:action="@{/assignments/create}"
+                          th:object="${assignmentForm}"
+                          method="post">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label" for="assignment-semester">Semester</label>
+                                <select class="form-select" id="assignment-semester" th:field="*{semesterId}">
+                                    <option value="">Select a semester</option>
+                                    <option th:each="semester : ${semesters}"
+                                            th:value="${semester.id}"
+                                            th:text="${semester.code + ' - ' + semester.name}">
+                                        Semester
+                                    </option>
+                                </select>
+                                <div class="field-error" th:if="${#fields.hasErrors('semesterId')}" th:errors="*{semesterId}"></div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="assignment-title">Assignment Title</label>
+                                <input class="form-input" id="assignment-title" type="text" th:field="*{title}" placeholder="Example: Lab 01">
+                                <div class="field-error" th:if="${#fields.hasErrors('title')}" th:errors="*{title}"></div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="assignment-description">Description</label>
+                                <textarea class="form-textarea" id="assignment-description" rows="4" th:field="*{description}" placeholder="Short assignment description"></textarea>
+                                <div class="field-error" th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></div>
+                            </div>
+                            <div class="detail-grid">
+                                <div class="form-group">
+                                    <label class="form-label" for="assignment-mode">Grading Mode</label>
+                                    <select class="form-select" id="assignment-mode" th:field="*{gradingMode}">
+                                        <option value="JAVA_CORE">JAVA_CORE</option>
+                                        <option value="OOP">OOP</option>
+                                    </select>
+                                    <div class="field-error" th:if="${#fields.hasErrors('gradingMode')}" th:errors="*{gradingMode}"></div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="assignment-total-score">Total Score</label>
+                                    <input class="form-input" id="assignment-total-score" type="number" step="0.01" th:field="*{totalScore}">
+                                    <div class="field-error" th:if="${#fields.hasErrors('totalScore')}" th:errors="*{totalScore}"></div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="assignment-threshold">Plagiarism Threshold</label>
+                                <input class="form-input" id="assignment-threshold" type="number" step="0.01" th:field="*{plagiarismThreshold}">
+                                <div class="field-error" th:if="${#fields.hasErrors('plagiarismThreshold')}" th:errors="*{plagiarismThreshold}"></div>
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button class="btn btn-primary" type="submit">Save Assignment</button>
+                            <a class="btn btn-secondary" th:href="@{/dashboard}">Cancel</a>
+                        </div>
+                    </form>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+</div>
+</body>
+</html>

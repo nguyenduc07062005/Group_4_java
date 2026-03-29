@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Create Problem')}"></head>
+<body>
+<div class="app-shell">
+    <header th:replace="~{fragments/header :: header}"></header>
+
+    <div class="page-content">
+        <div class="app-layout">
+            <aside th:replace="~{fragments/sidebar :: sidebar('assignments')}"></aside>
+
+            <main class="content-stack">
+                <div th:replace="~{fragments/alerts :: alerts}"></div>
+
+                <section class="form-card">
+                    <div class="page-header">
+                        <div>
+                            <h1 class="page-title">Create Problem</h1>
+                            <p class="page-subtitle" th:text="${assignment.title + ' (' + assignment.semesterCode + ')'}">Assignment context.</p>
+                        </div>
+                        <div class="page-actions">
+                            <a class="btn btn-secondary" th:href="@{/assignments/{id}(id=${assignment.id})}">Back to Assignment</a>
+                        </div>
+                    </div>
+
+                    <form th:action="@{/assignments/{assignmentId}/problems/create(assignmentId=${assignment.id})}"
+                          th:object="${problemForm}"
+                          method="post">
+                        <div class="form-grid">
+                            <div class="detail-grid">
+                                <div class="form-group">
+                                    <label class="form-label" for="problem-order">Problem Order</label>
+                                    <input class="form-input" id="problem-order" type="number" th:field="*{problemOrder}">
+                                    <div class="field-error" th:if="${#fields.hasErrors('problemOrder')}" th:errors="*{problemOrder}"></div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="problem-score">Max Score</label>
+                                    <input class="form-input" id="problem-score" type="number" step="0.01" th:field="*{maxScore}">
+                                    <div class="field-error" th:if="${#fields.hasErrors('maxScore')}" th:errors="*{maxScore}"></div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="problem-title">Problem Title</label>
+                                <input class="form-input" id="problem-title" type="text" th:field="*{title}" placeholder="Example: Reverse String">
+                                <div class="field-error" th:if="${#fields.hasErrors('title')}" th:errors="*{title}"></div>
+                            </div>
+                            <div class="detail-grid">
+                                <div class="form-group">
+                                    <label class="form-label" for="problem-input-mode">Input Mode</label>
+                                    <select class="form-select" id="problem-input-mode" th:field="*{inputMode}">
+                                        <option value="STDIN">STDIN</option>
+                                    </select>
+                                    <div class="field-error" th:if="${#fields.hasErrors('inputMode')}" th:errors="*{inputMode}"></div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="problem-output-mode">Output Comparison</label>
+                                    <select class="form-select" id="problem-output-mode" th:field="*{outputComparisonMode}">
+                                        <option value="EXACT">EXACT</option>
+                                    </select>
+                                    <div class="field-error" th:if="${#fields.hasErrors('outputComparisonMode')}" th:errors="*{outputComparisonMode}"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button class="btn btn-primary" type="submit">Save Problem</button>
+                            <a class="btn btn-secondary" th:href="@{/assignments/{id}(id=${assignment.id})}">Cancel</a>
+                        </div>
+                    </form>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+</div>
+</body>
+</html>
