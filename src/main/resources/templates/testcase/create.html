@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Create Test Case')}"></head>
+<body>
+<div class="app-shell">
+    <header th:replace="~{fragments/header :: header}"></header>
+
+    <div class="page-content">
+        <div class="app-layout">
+            <aside th:replace="~{fragments/sidebar :: sidebar('assignments')}"></aside>
+
+            <main class="content-stack">
+                <div th:replace="~{fragments/alerts :: alerts}"></div>
+
+                <section class="form-card">
+                    <div class="page-header">
+                        <div>
+                            <h1 class="page-title">Create Test Case</h1>
+                            <p class="page-subtitle" th:text="${'Problem ' + problem.problemOrder + ': ' + problem.title}">Problem context.</p>
+                        </div>
+                        <div class="page-actions">
+                            <a class="btn btn-secondary" th:href="@{/assignments/{id}(id=${assignment.id})}">Back to Assignment</a>
+                        </div>
+                    </div>
+
+                    <div class="info-card compact-card">
+                        <div class="info-list">
+                            <div class="info-row">
+                                <span class="info-label">Assignment</span>
+                                <strong th:text="${assignment.title}">Lab 01</strong>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Current Test Cases</span>
+                                <strong th:text="${problem.testCaseCount}">0</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form th:action="@{/problems/{problemId}/testcases/create(problemId=${problem.id})}"
+                          th:object="${testCaseForm}"
+                          method="post">
+                        <div class="form-grid">
+                            <div class="detail-grid">
+                                <div class="form-group">
+                                    <label class="form-label" for="testcase-order">Case Order</label>
+                                    <input class="form-input" id="testcase-order" type="number" th:field="*{caseOrder}">
+                                    <div class="field-error" th:if="${#fields.hasErrors('caseOrder')}" th:errors="*{caseOrder}"></div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="testcase-sample">Sample Case</label>
+                                    <select class="form-select" id="testcase-sample" th:field="*{sample}">
+                                        <option th:value="false">No</option>
+                                        <option th:value="true">Yes</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="testcase-input">Input</label>
+                                <textarea class="form-textarea" id="testcase-input" rows="5" th:field="*{inputData}" placeholder="Input data"></textarea>
+                                <div class="field-error" th:if="${#fields.hasErrors('inputData')}" th:errors="*{inputData}"></div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="testcase-output">Expected Output</label>
+                                <textarea class="form-textarea" id="testcase-output" rows="5" th:field="*{expectedOutput}" placeholder="Expected output"></textarea>
+                                <div class="field-error" th:if="${#fields.hasErrors('expectedOutput')}" th:errors="*{expectedOutput}"></div>
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button class="btn btn-primary" type="submit">Save Test Case</button>
+                            <a class="btn btn-secondary" th:href="@{/assignments/{id}(id=${assignment.id})}">Cancel</a>
+                        </div>
+                    </form>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+</div>
+</body>
+</html>

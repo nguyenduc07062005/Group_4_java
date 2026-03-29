@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Create Semester')}"></head>
+<body>
+<div class="app-shell">
+    <header th:replace="~{fragments/header :: header}"></header>
+
+    <div class="page-content">
+        <div class="app-layout">
+            <aside th:replace="~{fragments/sidebar :: sidebar('semesters')}"></aside>
+
+            <main class="content-stack">
+                <div th:replace="~{fragments/alerts :: alerts}"></div>
+
+                <section class="form-card">
+                    <div class="page-header">
+                        <div>
+                            <h1 class="page-title">Create Semester</h1>
+                            <p class="page-subtitle">Create the semester first, then attach assignments to it.</p>
+                        </div>
+                        <div class="page-actions">
+                            <a class="btn btn-secondary" th:href="@{/dashboard}">Back to Dashboard</a>
+                        </div>
+                    </div>
+
+                    <form th:action="@{/semesters/create}" th:object="${semesterForm}" method="post">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label" for="semester-code">Semester Code</label>
+                                <input class="form-input" id="semester-code" type="text" th:field="*{code}" placeholder="Example: SP25">
+                                <div class="field-error" th:if="${#fields.hasErrors('code')}" th:errors="*{code}"></div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="semester-name">Semester Name</label>
+                                <input class="form-input" id="semester-name" type="text" th:field="*{name}" placeholder="Example: Spring 2025">
+                                <div class="field-error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
+                            </div>
+                            <div class="detail-grid">
+                                <div class="form-group">
+                                    <label class="form-label" for="semester-start">Start Date</label>
+                                    <input class="form-input" id="semester-start" type="date" th:field="*{startDate}">
+                                    <div class="field-error" th:if="${#fields.hasErrors('startDate')}" th:errors="*{startDate}"></div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="semester-end">End Date</label>
+                                    <input class="form-input" id="semester-end" type="date" th:field="*{endDate}">
+                                    <div class="field-error" th:if="${#fields.hasErrors('endDate')}" th:errors="*{endDate}"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button class="btn btn-primary" type="submit">Save Semester</button>
+                            <a class="btn btn-secondary" th:href="@{/dashboard}">Cancel</a>
+                        </div>
+                    </form>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+</div>
+</body>
+</html>

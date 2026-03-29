@@ -1,0 +1,34 @@
+<aside xmlns:th="http://www.thymeleaf.org" class="sidebar" th:fragment="sidebar(activePage)">
+    <div class="sidebar-card">
+        <p class="sidebar-label">Phase 1</p>
+        <h2 class="sidebar-title">Dashboard and Assignment Flow</h2>
+        <p class="sidebar-text">Scaffold the shared UI and GET routes first, then connect forms and services after the other branches land.</p>
+    </div>
+
+    <nav class="sidebar-nav">
+        <a class="sidebar-link"
+           th:classappend="${activePage == 'dashboard'} ? ' is-active' : ''"
+           th:href="@{/dashboard}">
+            Dashboard
+        </a>
+        <a class="sidebar-link"
+           th:classappend="${activePage == 'semesters'} ? ' is-active' : ''"
+           th:href="@{/semesters/create}">
+            Create Semester
+        </a>
+        <a class="sidebar-link"
+           th:classappend="${activePage == 'assignments'} ? ' is-active' : ''"
+           th:href="@{/assignments/create}">
+            Create Assignment
+        </a>
+    </nav>
+
+    <div class="sidebar-card">
+        <p class="sidebar-section-title">Current Focus</p>
+        <ul class="sidebar-list">
+            <li>Shared layout</li>
+            <li>Phase 1 pages</li>
+            <li>GET route wiring</li>
+        </ul>
+    </div>
+</aside>
