@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Assignment Detail')}"></head>
+<body>
+<div class="app-shell">
+    <header th:replace="~{fragments/header :: header}"></header>
+
+    <main class="page-content">
+        <div th:replace="~{fragments/alerts :: alerts}"></div>
+
+        <div class="page-header">
+            <div>
+                <h1 class="page-title" th:text="${assignment.assignmentName}">Assignment Detail</h1>
+                <p class="page-subtitle">Persisted grading configuration for this assignment.</p>
+            </div>
+            <div class="page-actions">
+                <a class="btn btn-secondary" th:href="@{/dashboard}">Back to Dashboard</a>
+                <a class="btn btn-primary" th:href="@{/assignments/create}">Create Another</a>
+            </div>
+        </div>
+
+        <div class="content-stack">
+            <section class="info-card">
+                <h2 class="section-title">Configuration Summary</h2>
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">Semester</span>
+                        <span class="detail-value" th:text="${assignment.semester.name}">Default Semester</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Semester Code</span>
+                        <span class="detail-value" th:text="${assignment.semester.code}">AUTO-2026</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Grading Mode</span>
+                        <span class="detail-value" th:text="${assignment.gradingMode}">JAVA_CORE</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Plagiarism Threshold</span>
+                        <span class="detail-value" th:text="${assignment.plagiarismThreshold + '%'}">80%</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Output Normalization Policy</span>
+                        <span class="detail-value" th:text="${assignment.outputNormalizationPolicy}">STRICT</span>
+                    </div>
+                    <div class="detail-item" th:if="${assignment.gradingMode == 'OOP'}">
+                        <span class="detail-label">Weight Distribution</span>
+                        <span class="detail-value" th:text="${assignment.logicWeight + '% logic / ' + assignment.oopWeight + '% OOP'}">50% logic / 50% OOP</span>
+                    </div>
+                    <div class="detail-item" th:if="${assignment.gradingMode != 'OOP'}">
+                        <span class="detail-label">OOP-Specific Configuration</span>
+                        <span class="detail-value">Not used in Java Core mode.</span>
+                    </div>
+                </div>
+            </section>
+
+            <section class="info-card">
+                <h2 class="section-title">Uploaded Files</h2>
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">Assignment Description Upload</span>
+                        <span class="detail-value" th:text="${assignment.hasDescriptionUpload() ? assignment.descriptionFileName : 'Not uploaded'}">spec.md</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Description Content Type</span>
+                        <span class="detail-value" th:text="${assignment.hasDescriptionUpload() ? assignment.descriptionFileContentType : 'N/A'}">text/markdown</span>
+                    </div>
+                    <div class="detail-item" th:if="${assignment.gradingMode == 'OOP'}">
+                        <span class="detail-label">OOP Rule Config Upload</span>
+                        <span class="detail-value" th:text="${assignment.hasOopRuleConfigUpload() ? assignment.oopRuleConfigFileName : 'Not uploaded'}">rules.json</span>
+                    </div>
+                    <div class="detail-item" th:if="${assignment.gradingMode == 'OOP'}">
+                        <span class="detail-label">Rule Config Content Type</span>
+                        <span class="detail-value" th:text="${assignment.hasOopRuleConfigUpload() ? assignment.oopRuleConfigContentType : 'N/A'}">application/json</span>
+                    </div>
+                    <div class="detail-item" th:if="${assignment.gradingMode != 'OOP'}">
+                        <span class="detail-label">OOP Rule Config Upload</span>
+                        <span class="detail-value">Not required for Java Core mode.</span>
+                    </div>
+                </div>
+            </section>
+
+            <section class="content-card" th:if="${assignment.description != null and !#strings.isEmpty(assignment.description)}">
+                <h2 class="section-title">Markdown Description Preview</h2>
+                <pre class="preview-panel" th:text="${assignment.description}"></pre>
+            </section>
+        </div>
+    </main>
+
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+</div>
+</body>
+</html>

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Create Assignment')}"></head>
+<body>
+<div class="app-shell">
+    <header th:replace="~{fragments/header :: header}"></header>
+
+    <main class="page-content">
+        <div th:replace="~{fragments/alerts :: alerts}"></div>
+
+        <div class="page-header">
+            <div>
+                <h1 class="page-title">Create Assignment</h1>
+                <p class="page-subtitle">Configure grading mode, thresholds, and only the fields that apply to the selected grading workflow.</p>
+            </div>
+        </div>
+
+        <div class="content-card">
+            <form th:action="@{/assignments/create}" th:object="${assignmentForm}" method="post" enctype="multipart/form-data" class="form-grid">
+                <div class="alerts-wrap" th:if="${#fields.hasGlobalErrors()}">
+                    <div class="alert alert-error" th:each="error : ${#fields.globalErrors()}" th:text="${error}"></div>
+                </div>
+
+                <section class="content-stack">
+                    <div>
+                        <h2 class="section-title">General Information</h2>
+                        <p class="form-help">If no semester exists yet, the app will create a default semester automatically for this standalone branch.</p>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="assignmentName">Assignment Name</label>
+                        <input class="form-input" id="assignmentName" th:field="*{assignmentName}" type="text" placeholder="Ex: Lab 02 - Collections">
+                        <div class="field-error"
+                             th:if="${#fields.hasErrors('assignmentName')}"
+                             th:errors="*{assignmentName}"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="descriptionFile">Assignment Description Upload</label>
+                        <input class="form-input" id="descriptionFile" th:field="*{descriptionFile}" type="file" accept=".pdf,.md">
+                        <p class="form-help">Accepted formats: PDF or Markdown.</p>
+                        <div class="field-error"
+                             th:if="${#fields.hasErrors('descriptionFile')}"
+                             th:errors="*{descriptionFile}"></div>
+                    </div>
+                </section>
+
+                <div class="section-divider"></div>
+
+                <section class="content-stack">
+                    <div>
+                        <h2 class="section-title">Grading Configuration</h2>
+                        <p class="form-help">These values are persisted and shown again on the assignment detail page.</p>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="gradingMode">Grading Mode</label>
+                        <select class="form-select" id="gradingMode" th:field="*{gradingMode}">
+                            <option value="JAVA_CORE">Java Core (Main.java strict)</option>
+                            <option value="OOP">OOP (Multi-file &amp; AST rules)</option>
+                        </select>
+                        <p class="form-help">Logic/OOP weighting and OOP rule upload appear only when the mode is set to OOP.</p>
+                        <div class="field-error"
+                             th:if="${#fields.hasErrors('gradingMode')}"
+                             th:errors="*{gradingMode}"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="outputNormalizationPolicy">Output Normalization Policy</label>
+                        <select class="form-select" id="outputNormalizationPolicy" th:field="*{outputNormalizationPolicy}">
+                            <option value="STRICT">Strict (Exact Match)</option>
+                            <option value="TRIM_ALL">Trim All Extraneous Whitespace</option>
+                            <option value="IGNORE_WHITESPACE">Ignore Completely Whitespace/Newlines</option>
+                        </select>
+                        <div class="field-error"
+                             th:if="${#fields.hasErrors('outputNormalizationPolicy')}"
+                             th:errors="*{outputNormalizationPolicy}"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="plagiarismThreshold">Plagiarism Threshold (%)</label>
+                        <input class="form-input" id="plagiarismThreshold" th:field="*{plagiarismThreshold}" type="number" min="0" max="100">
+                        <div class="field-error"
+                             th:if="${#fields.hasErrors('plagiarismThreshold')}"
+                             th:errors="*{plagiarismThreshold}"></div>
+                    </div>
+
+                    <div data-oop-section th:attr="hidden=${assignmentForm.gradingMode != 'OOP'} ? 'hidden' : null">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label" for="logicWeight">Logic Testcase Weight (%)</label>
+                                <input class="form-input"
+                                       id="logicWeight"
+                                       th:field="*{logicWeight}"
+                                       type="number"
+                                       min="0"
+                                       max="100"
+                                       data-oop-field
+                                       th:disabled="${assignmentForm.gradingMode != 'OOP'}">
+                                <div class="field-error"
+                                     th:if="${#fields.hasErrors('logicWeight')}"
+                                     th:errors="*{logicWeight}"></div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="oopWeight">OOP Rules Weight (%)</label>
+                                <input class="form-input"
+                                       id="oopWeight"
+                                       th:field="*{oopWeight}"
+                                       type="number"
+                                       min="0"
+                                       max="100"
+                                       data-oop-field
+                                       th:disabled="${assignmentForm.gradingMode != 'OOP'}">
+                                <div class="field-error"
+                                     th:if="${#fields.hasErrors('oopWeight')}"
+                                     th:errors="*{oopWeight}"></div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="oopRuleConfig">OOP Rule Configuration Upload</label>
+                            <input class="form-input"
+                                   id="oopRuleConfig"
+                                   th:field="*{oopRuleConfig}"
+                                   type="file"
+                                   accept=".json"
+                                   data-oop-field
+                                   th:disabled="${assignmentForm.gradingMode != 'OOP'}">
+                            <p class="form-help">Accepted format: JSON. Used only for OOP assignments.</p>
+                            <div class="field-error"
+                                 th:if="${#fields.hasErrors('oopRuleConfig')}"
+                                 th:errors="*{oopRuleConfig}"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="form-actions">
+                    <button class="btn btn-primary" type="submit">Save Configuration</button>
+                    <a class="btn btn-secondary" th:href="@{/dashboard}">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+</div>
+<script th:src="@{/js/assignment-create.js}"></script>
+</body>
+</html>
