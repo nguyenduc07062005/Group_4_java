@@ -1,14 +1,25 @@
 package com.group4.javagrader.service;
 
 import com.group4.javagrader.dto.TestCaseForm;
-import com.group4.javagrader.dto.TestCaseSummaryDto;
+import com.group4.javagrader.dto.TestCaseImportPreviewForm;
+import com.group4.javagrader.entity.TestCase;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.util.List;
 
 public interface TestCaseService {
 
-    List<TestCaseSummaryDto> findByProblemId(Long problemId);
+    Long create(TestCaseForm form);
 
-    Long create(Long problemId, TestCaseForm form);
+    void update(Long id, TestCaseForm form);
 
-    boolean existsByProblemIdAndCaseOrder(Long problemId, Integer caseOrder);
+    void delete(Long problemId, Long testCaseId);
+
+    TestCaseImportPreviewForm buildImportPreview(Long problemId, MultipartFile file);
+
+    long saveImportedTestCases(TestCaseImportPreviewForm previewForm);
+
+    List<TestCase> findByProblemId(Long problemId);
+
+    long countByProblemId(Long problemId);
 }

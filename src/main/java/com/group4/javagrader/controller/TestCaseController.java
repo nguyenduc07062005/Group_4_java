@@ -1,111 +1,168 @@
 package com.group4.javagrader.controller;
 
-import com.group4.javagrader.dto.AssignmentDetailDto;
-import com.group4.javagrader.dto.AssignmentSummaryDto;
-import com.group4.javagrader.dto.ProblemDetailDto;
-import com.group4.javagrader.dto.SemesterSummaryDto;
 import com.group4.javagrader.dto.TestCaseForm;
-import com.group4.javagrader.service.AssignmentService;
+import com.group4.javagrader.dto.TestCaseImportForm;
+import com.group4.javagrader.dto.TestCaseImportPreviewForm;
+import com.group4.javagrader.entity.Problem;
+import com.group4.javagrader.exception.DomainException;
 import com.group4.javagrader.service.ProblemService;
-import com.group4.javagrader.service.SemesterService;
 import com.group4.javagrader.service.TestCaseService;
-import java.util.List;
-import org.springframework.beans.factory.ObjectProvider;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequestMapping("/problems/{problemId}/testcases")
 public class TestCaseController {
 
-    private final ObjectProvider<ProblemService> problemServiceProvider;
-    private final ObjectProvider<AssignmentService> assignmentServiceProvider;
-    private final ObjectProvider<TestCaseService> testCaseServiceProvider;
-    private final ObjectProvider<SemesterService> semesterServiceProvider;
+    private final TestCaseService testCaseService;
+    private final ProblemService problemService;
 
-    public TestCaseController(
-            ObjectProvider<ProblemService> problemServiceProvider,
-            ObjectProvider<AssignmentService> assignmentServiceProvider,
-            ObjectProvider<TestCaseService> testCaseServiceProvider,
-            ObjectProvider<SemesterService> semesterServiceProvider) {
-        this.problemServiceProvider = problemServiceProvider;
-        this.assignmentServiceProvider = assignmentServiceProvider;
-        this.testCaseServiceProvider = testCaseServiceProvider;
-        this.semesterServiceProvider = semesterServiceProvider;
+    public TestCaseController(TestCaseService testCaseService, ProblemService problemService) {
+        this.testCaseService = testCaseService;
+        this.problemService = problemService;
     }
 
     @GetMapping("/create")
-    public String showCreateForm(@PathVariable Long problemId, Model model) {
-        ProblemService problemService = problemServiceProvider.getIfAvailable();
-        AssignmentService assignmentService = assignmentServiceProvider.getIfAvailable();
-        ProblemDetailDto problem = problemService != null ? problemService.findDetailById(problemId).orElse(null) : null;
-        if (problem == null) {
-            model.addAttribute("errorMessage", "Problem not found.");
-            model.addAttribute("semesters", getSemesters());
-            model.addAttribute("assignments", getAssignments());
-            return "dashboard/index";
-        }
-
-        AssignmentDetailDto assignment = assignmentService != null ? assignmentService.findDetailById(problem.getAssignmentId()).orElse(null) : null;
-        TestCaseForm testCaseForm = new TestCaseForm();
-        testCaseForm.setCaseOrder(problem.getTestCaseCount() + 1);
-        model.addAttribute("testCaseForm", testCaseForm);
-        model.addAttribute("problem", problem);
-        model.addAttribute("assignment", assignment);
-        return "testcase/create";
+    public String showCreateForm(@PathVariable("problemId") Long problemId, RedirectAttributes redirectAttributes) {
+        return problemService.findById(problemId)
+                .map(problem -> redirectToTestcaseLab(problem.getAssignment().getId(), problemId))
+                .orElseGet(() -> {
+                    redirectAttributes.addFlashAttribute("errorMessage", "Problem not found.");
+                    return "redirect:/semesters";
+                });
     }
 
     @PostMapping("/create")
     public String create(
-            @PathVariable Long problemId,
-            @Valid @ModelAttribute("testCaseForm") TestCaseForm testCaseForm,
+            @PathVariable("problemId") Long problemId,
+            @Valid @ModelAttribute("testCaseForm") TestCaseForm form,
             BindingResult bindingResult,
-            Model model,
             RedirectAttributes redirectAttributes) {
-        ProblemService problemService = problemServiceProvider.getIfAvailable();
-        AssignmentService assignmentService = assignmentServiceProvider.getIfAvailable();
-        TestCaseService testCaseService = testCaseServiceProvider.getIfAvailable();
-        ProblemDetailDto problem = problemService != null ? problemService.findDetailById(problemId).orElse(null) : null;
-        if (problem == null) {
-            model.addAttribute("errorMessage", "Problem not found.");
-            model.addAttribute("semesters", getSemesters());
-            model.addAttribute("assignments", getAssignments());
-            return "dashboard/index";
-        }
+        form.setProblemId(problemId);
 
-        AssignmentDetailDto assignment = assignmentService != null ? assignmentService.findDetailById(problem.getAssignmentId()).orElse(null) : null;
-        if (testCaseService == null) {
-            bindingResult.reject("serviceUnavailable", "TestCaseService is not available yet.");
-        } else if (testCaseService.existsByProblemIdAndCaseOrder(problemId, testCaseForm.getCaseOrder())) {
-            bindingResult.rejectValue("caseOrder", "duplicate", "Case order already exists in this problem.");
+        Problem problem = problemService.findById(problemId).orElse(null);
+        if (problem == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Problem not found.");
+            return "redirect:/semesters";
         }
 
         if (bindingResult.hasErrors()) {
-            model.addAttribute("problem", problem);
-            model.addAttribute("assignment", assignment);
-            return "testcase/create";
+            return redirectBackToWorkspaceWithTestCaseForm(problem, form, bindingResult, redirectAttributes);
         }
 
-        testCaseService.create(problemId, testCaseForm);
-        redirectAttributes.addFlashAttribute("successMessage", "Test case added successfully.");
-        return "redirect:/assignments/" + problem.getAssignmentId();
+        try {
+            testCaseService.create(form);
+            redirectAttributes.addFlashAttribute("successMessage", "Test case saved successfully.");
+            return redirectToTestcaseLab(problem.getAssignment().getId(), problemId);
+        } catch (DomainException ex) {
+            bindingResult.reject("testCaseForm.invalid", ex.getMessage());
+            return redirectBackToWorkspaceWithTestCaseForm(problem, form, bindingResult, redirectAttributes);
+        }
     }
 
-    private List<SemesterSummaryDto> getSemesters() {
-        SemesterService service = semesterServiceProvider.getIfAvailable();
-        return service != null ? service.findAllSummaries() : List.of();
+    @PostMapping("/import")
+    public String importTestCases(
+            @PathVariable("problemId") Long problemId,
+            @ModelAttribute("testCaseImportForm") TestCaseImportForm importForm,
+            RedirectAttributes redirectAttributes) {
+        importForm.setProblemId(problemId);
+
+        Problem problem = problemService.findById(problemId).orElse(null);
+        if (problem == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Problem not found.");
+            return "redirect:/semesters";
+        }
+
+        try {
+            redirectAttributes.addFlashAttribute("testCaseImportPreviewForm", testCaseService.buildImportPreview(problemId, importForm.getImportFile()));
+        } catch (DomainException ex) {
+            redirectAttributes.addFlashAttribute("importErrorMessage", ex.getMessage());
+        }
+
+        return redirectToTestcaseLab(problem.getAssignment().getId(), problemId);
     }
 
-    private List<AssignmentSummaryDto> getAssignments() {
-        AssignmentService service = assignmentServiceProvider.getIfAvailable();
-        return service != null ? service.findAllSummaries() : List.of();
+    @PostMapping("/import/preview")
+    public String removeImportedPreviewRow(
+            @PathVariable("problemId") Long problemId,
+            @ModelAttribute("testCaseImportPreviewForm") TestCaseImportPreviewForm previewForm,
+            @RequestParam("removeIndex") int removeIndex,
+            RedirectAttributes redirectAttributes) {
+        previewForm.setProblemId(problemId);
+
+        Problem problem = problemService.findById(problemId).orElse(null);
+        if (problem == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Problem not found.");
+            return "redirect:/semesters";
+        }
+
+        if (previewForm.getRows() == null || removeIndex < 0 || removeIndex >= previewForm.getRows().size()) {
+            redirectAttributes.addFlashAttribute("importErrorMessage", "The selected preview row was not found.");
+        } else {
+            previewForm.getRows().remove(removeIndex);
+        }
+
+        redirectAttributes.addFlashAttribute("testCaseImportPreviewForm", previewForm);
+        return redirectToTestcaseLab(problem.getAssignment().getId(), problemId);
+    }
+
+    @PostMapping("/import/save")
+    public String saveImportedPreview(
+            @PathVariable("problemId") Long problemId,
+            @Valid @ModelAttribute("testCaseImportPreviewForm") TestCaseImportPreviewForm previewForm,
+            BindingResult bindingResult,
+            RedirectAttributes redirectAttributes) {
+        previewForm.setProblemId(problemId);
+
+        Problem problem = problemService.findById(problemId).orElse(null);
+        if (problem == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Problem not found.");
+            return "redirect:/semesters";
+        }
+
+        if (previewForm.getRows() == null || previewForm.getRows().isEmpty()) {
+            String message = "Import preview is empty.";
+            bindingResult.reject("testCaseImportPreviewForm.empty", message);
+            redirectAttributes.addFlashAttribute("importErrorMessage", message);
+        }
+
+        if (bindingResult.hasErrors()) {
+            redirectAttributes.addFlashAttribute("testCaseImportPreviewForm", previewForm);
+            redirectAttributes.addFlashAttribute(BindingResult.MODEL_KEY_PREFIX + "testCaseImportPreviewForm", bindingResult);
+            return redirectToTestcaseLab(problem.getAssignment().getId(), problemId);
+        }
+
+        try {
+            long savedCount = testCaseService.saveImportedTestCases(previewForm);
+            redirectAttributes.addFlashAttribute("successMessage", savedCount + " imported test cases saved successfully.");
+            return redirectToTestcaseLab(problem.getAssignment().getId(), problemId);
+        } catch (DomainException ex) {
+            bindingResult.reject("testCaseImportPreviewForm.invalid", ex.getMessage());
+            redirectAttributes.addFlashAttribute("testCaseImportPreviewForm", previewForm);
+            redirectAttributes.addFlashAttribute(BindingResult.MODEL_KEY_PREFIX + "testCaseImportPreviewForm", bindingResult);
+            return redirectToTestcaseLab(problem.getAssignment().getId(), problemId);
+        }
+    }
+
+    private String redirectBackToWorkspaceWithTestCaseForm(
+            Problem problem,
+            TestCaseForm form,
+            BindingResult bindingResult,
+            RedirectAttributes redirectAttributes) {
+        redirectAttributes.addFlashAttribute("testCaseForm", form);
+        redirectAttributes.addFlashAttribute(BindingResult.MODEL_KEY_PREFIX + "testCaseForm", bindingResult);
+        return redirectToTestcaseLab(problem.getAssignment().getId(), problem.getId());
+    }
+
+    private String redirectToTestcaseLab(Long assignmentId, Long problemId) {
+        return "redirect:/assignments/" + assignmentId + "?problemId=" + problemId + "#testcase-lab";
     }
 }

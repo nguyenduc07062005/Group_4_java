@@ -5,72 +5,178 @@
 <div class="app-shell">
     <header th:replace="~{fragments/header :: header}"></header>
 
-    <div class="page-content">
-        <div class="app-layout">
-            <aside th:replace="~{fragments/sidebar :: sidebar('assignments')}"></aside>
+    <main class="page-content workspace-page">
+        <div th:replace="~{fragments/alerts :: alerts}"></div>
 
-            <main class="content-stack">
-                <div th:replace="~{fragments/alerts :: alerts}"></div>
+        <section class="workspace-unified-shell workspace-unified-shell-form">
+            <div class="workspace-unified-hero">
+                <div>
+                    <div class="workspace-path">
+                        <a th:href="@{/dashboard}">Dashboard</a>
+                        <span class="workspace-path-separator">/</span>
+                        <a th:href="@{/semesters}">Semester Board</a>
+                        <span class="workspace-path-separator">/</span>
+                        <a th:href="@{/semesters/{id}(id=${assignment.semester.id})}" th:text="${assignment.semester.code}">SP26</a>
+                        <span class="workspace-path-separator">/</span>
+                        <span th:text="${assignment.course.courseCode}">SWE201</span>
+                        <span class="workspace-path-separator">/</span>
+                        <a th:href="@{/assignments/{id}(id=${assignment.id})}" th:text="${assignment.assignmentName}">Collections Lab</a>
+                        <span class="workspace-path-separator">/</span>
+                        <span class="workspace-path-current">Add Problem</span>
+                    </div>
+                    <h1 class="page-title">Question Builder</h1>
+                    <p class="page-subtitle"
+                       th:text="${assignment.assignmentName + ' | create the next visible runtime block for this assignment'}">Collections Lab | create the next visible runtime block for this assignment</p>
+                </div>
+                <div class="page-actions">
+                    <a class="btn btn-primary" th:href="@{/assignments/{id}(id=${assignment.id})}">Back To Assignment</a>
+                    <a class="btn btn-secondary" th:href="@{/assignments/{assignmentId}/testcases(assignmentId=${assignment.id})}">Open Testcase Workspace</a>
+                </div>
+            </div>
 
-                <section class="form-card">
-                    <div class="page-header">
-                        <div>
-                            <h1 class="page-title">Create Problem</h1>
-                            <p class="page-subtitle" th:text="${assignment.title + ' (' + assignment.semesterCode + ')'}">Assignment context.</p>
+            <div class="workspace-stage-layout">
+                <aside class="workspace-stage-sidebar">
+                    <div th:replace="~{fragments/workspace-nav :: assignmentStages(${assignment.id}, 'setup')}"></div>
+                </aside>
+
+                <div class="workspace-stage-main">
+                    <div class="workspace-unified-body">
+                <section class="content-card">
+                    <div class="workspace-summary-strip">
+                        <div class="workspace-summary-card">
+                            <span class="workspace-summary-title">Course</span>
+                            <span class="workspace-summary-value" th:text="${assignment.course.courseCode}">SWE201</span>
+                            <span class="workspace-summary-note" th:text="${assignment.course.courseName}">Software Engineering</span>
                         </div>
-                        <div class="page-actions">
-                            <a class="btn btn-secondary" th:href="@{/assignments/{id}(id=${assignment.id})}">Back to Assignment</a>
+                        <div class="workspace-summary-card">
+                            <span class="workspace-summary-title">Question Type</span>
+                            <span class="workspace-summary-value">General</span>
+                            <span class="workspace-summary-note">This builder currently creates the graded runtime block that will feed manual and imported testcase authoring.</span>
+                        </div>
+                        <div class="workspace-summary-card">
+                            <span class="workspace-summary-title">Course Mode</span>
+                            <span class="workspace-summary-value" th:text="${assignment.gradingMode}">JAVA_CORE</span>
+                            <span class="workspace-summary-note">The assignment mode stays visible here so teachers do not lose context while editing a single question.</span>
+                        </div>
+                        <div class="workspace-summary-card">
+                            <span class="workspace-summary-title">Student Input</span>
+                            <span class="workspace-summary-value" th:text="${problemForm.fileInputMode ? 'input.txt' : 'STDIN'}">STDIN</span>
+                            <span class="workspace-summary-note">Choose whether testcase input is injected through the console or written to <code>input.txt</code>.</span>
+                        </div>
+                        <div class="workspace-summary-card">
+                            <span class="workspace-summary-title">Next Step</span>
+                            <span class="workspace-summary-value">Testcases</span>
+                            <span class="workspace-summary-note">After save, teachers are sent directly into testcase authoring for this new question.</span>
                         </div>
                     </div>
+                </section>
 
-                    <form th:action="@{/assignments/{assignmentId}/problems/create(assignmentId=${assignment.id})}"
-                          th:object="${problemForm}"
-                          method="post">
-                        <div class="form-grid">
-                            <div class="detail-grid">
-                                <div class="form-group">
-                                    <label class="form-label" for="problem-order">Problem Order</label>
-                                    <input class="form-input" id="problem-order" type="number" th:field="*{problemOrder}">
-                                    <div class="field-error" th:if="${#fields.hasErrors('problemOrder')}" th:errors="*{problemOrder}"></div>
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label" for="problem-score">Max Score</label>
-                                    <input class="form-input" id="problem-score" type="number" step="0.01" th:field="*{maxScore}">
-                                    <div class="field-error" th:if="${#fields.hasErrors('maxScore')}" th:errors="*{maxScore}"></div>
-                                </div>
-                            </div>
+                <form th:action="@{/problems/create(contextAssignmentId=${assignment.id})}" th:object="${problemForm}" method="post" class="form-grid">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    <input type="hidden" th:field="*{assignmentId}">
+
+                    <div class="alerts-wrap" th:if="${#fields.hasGlobalErrors()}">
+                        <div class="alert alert-error" th:each="error : ${#fields.globalErrors()}" th:text="${error}"></div>
+                    </div>
+
+                    <section class="content-card content-stack">
+                        <div>
+                            <h2 class="section-title">Question Basics</h2>
+                            <p class="form-help">This is the visible question shell that replaces the default assignment runtime when you add the first real question.</p>
+                        </div>
+
+                        <div class="workspace-mini-chip-row">
+                            <span class="workspace-mini-chip" th:text="${assignment.semester.code}">SP26</span>
+                            <span class="workspace-mini-chip" th:text="${assignment.course.courseCode}">SWE201</span>
+                            <span class="workspace-mini-chip" th:text="${assignment.assignmentName}">Collections Lab</span>
+                            <span class="workspace-mini-chip">Testcase-driven grading</span>
+                        </div>
+
+                        <div class="form-row">
                             <div class="form-group">
-                                <label class="form-label" for="problem-title">Problem Title</label>
-                                <input class="form-input" id="problem-title" type="text" th:field="*{title}" placeholder="Example: Reverse String">
+                                <label class="form-label" for="title">Problem Title</label>
+                                <input class="form-input" id="title" th:field="*{title}" type="text" placeholder="Ex: Problem 1 - Sum of Two Numbers">
                                 <div class="field-error" th:if="${#fields.hasErrors('title')}" th:errors="*{title}"></div>
                             </div>
-                            <div class="detail-grid">
-                                <div class="form-group">
-                                    <label class="form-label" for="problem-input-mode">Input Mode</label>
-                                    <select class="form-select" id="problem-input-mode" th:field="*{inputMode}">
-                                        <option value="STDIN">STDIN</option>
-                                    </select>
-                                    <div class="field-error" th:if="${#fields.hasErrors('inputMode')}" th:errors="*{inputMode}"></div>
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label" for="problem-output-mode">Output Comparison</label>
-                                    <select class="form-select" id="problem-output-mode" th:field="*{outputComparisonMode}">
-                                        <option value="EXACT">EXACT</option>
-                                    </select>
-                                    <div class="field-error" th:if="${#fields.hasErrors('outputComparisonMode')}" th:errors="*{outputComparisonMode}"></div>
-                                </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="maxScore">Maximum Score</label>
+                                <input class="form-input" id="maxScore" th:field="*{maxScore}" type="number" min="0" step="0.01">
+                                <div class="field-error" th:if="${#fields.hasErrors('maxScore')}" th:errors="*{maxScore}"></div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="content-card content-stack">
+                        <div>
+                            <h2 class="section-title">Execution Configuration</h2>
+                            <p class="form-help">These settings control how every testcase is executed and how output is compared during grading.</p>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label" for="inputMode">Input Mode</label>
+                                <select class="form-select" id="inputMode" th:field="*{inputMode}">
+                                    <option value="STDIN">Console / STDIN</option>
+                                    <option value="FILE">Read from input.txt</option>
+                                </select>
+                                <p class="form-help">STDIN sends testcase input through the console. FILE creates <code>input.txt</code> before the program runs.</p>
+                                <div class="field-error" th:if="${#fields.hasErrors('inputMode')}" th:errors="*{inputMode}"></div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="outputComparisonMode">Output Comparison Mode</label>
+                                <select class="form-select" id="outputComparisonMode" th:field="*{outputComparisonMode}">
+                                    <option value="EXACT">Exact Match</option>
+                                    <option value="TRIM_ALL">Trim All Whitespace</option>
+                                    <option value="IGNORE_WHITESPACE">Ignore Whitespace</option>
+                                </select>
+                                <div class="field-error" th:if="${#fields.hasErrors('outputComparisonMode')}" th:errors="*{outputComparisonMode}"></div>
                             </div>
                         </div>
 
-                        <div class="form-actions">
-                            <button class="btn btn-primary" type="submit">Save Problem</button>
-                            <a class="btn btn-secondary" th:href="@{/assignments/{id}(id=${assignment.id})}">Cancel</a>
+                        <div class="note-panel">
+                            <p>If this assignment still only has the internal default runtime block, saving this form upgrades that placeholder into a named question and keeps the flow moving without an extra conversion step.</p>
                         </div>
-                    </form>
-                </section>
-            </main>
-        </div>
-    </div>
+                    </section>
+
+                    <section class="info-card">
+                        <div class="section-head">
+                            <div>
+                                <h2 class="section-title">Current Teaching Flow</h2>
+                                <p class="form-help">This screen keeps the teacher aware of where the question sits in the full grading journey.</p>
+                            </div>
+                        </div>
+
+                        <div class="workspace-resource-grid">
+                            <article class="workspace-resource-card">
+                                <span class="detail-label">Question Setup</span>
+                                <span class="detail-value">You are here</span>
+                                <p class="form-help">Name the question, choose the scoring cap, and define the runtime behavior before any testcase is written.</p>
+                            </article>
+                            <article class="workspace-resource-card">
+                                <span class="detail-label">Testcase Authoring</span>
+                                <span class="detail-value">Immediate next step</span>
+                                <p class="form-help">Manual entry and CSV/ZIP import both stay available after this save, so teachers can move into testcase setup without another navigation search.</p>
+                            </article>
+                            <article class="workspace-resource-card">
+                                <span class="detail-label">Submission Pipeline</span>
+                                <span class="detail-value">Assignment-level flow</span>
+                                <p class="form-help">Once each runtime block has testcase coverage, the assignment unlocks submission upload, plagiarism review, batch grading, results, and reports.</p>
+                            </article>
+                        </div>
+                    </section>
+
+                    <div class="form-actions">
+                        <button class="btn btn-primary" type="submit">Create Problem</button>
+                        <a class="btn btn-secondary" th:href="@{/assignments/{id}(id=${assignment.id})}">Back To Assignment</a>
+                    </div>
+                </form>
+            </div>
+                </div>
+            </div>
+        </section>
+    </main>
 
     <footer th:replace="~{fragments/footer :: footer}"></footer>
 </div>

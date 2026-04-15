@@ -1,5 +1,14 @@
-<footer xmlns:th="http://www.thymeleaf.org" class="site-footer" th:fragment="footer">
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="footer">
+<footer class="site-footer">
     <div class="container footer-inner">
-        <p>Java Code Grader Project - Spring Boot + Thymeleaf</p>
+        <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px;">
+            <p style="margin: 0;">JavaGrader &mdash; Teacher Workspace for Java Grading</p>
+            <div style="display: flex; align-items: center; gap: 16px; font-size: 13px;">
+                <a th:href="@{/dashboard}" style="transition: color 0.15s;" onmouseover="this.style.color='#0047a6'" onmouseout="this.style.color=''">Dashboard</a>
+                <a th:href="@{/semesters}" style="transition: color 0.15s;" onmouseover="this.style.color='#0047a6'" onmouseout="this.style.color=''">Semesters</a>
+                <span style="color: #9ca3af;">Group 4</span>
+            </div>
+        </div>
     </div>
 </footer>
+</th:block>

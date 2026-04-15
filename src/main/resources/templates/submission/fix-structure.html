@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Fix Submission Structure')}"></head>
+<body class="bg-white text-stone-950">
+<div class="min-h-screen">
+    <header th:replace="~{fragments/header :: header}"></header>
+
+    <main class="mx-auto max-w-[1680px] px-4 py-6 lg:px-6">
+        <div th:replace="~{fragments/alerts :: alerts}"></div>
+
+        <section class="rounded-[30px] border border-stone-200 bg-white shadow-[0_18px_40px_rgba(28,25,23,0.06)]">
+            <div class="border-b border-stone-100 bg-gradient-to-r from-[#002366] via-[#11534a] to-[#0f766e] px-6 py-6 text-white lg:px-8"
+                 style="border-radius: 30px 30px 0 0;">
+                <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+                    <div class="min-w-0 max-w-4xl">
+                        <div class="mb-3 flex flex-wrap items-center gap-2 text-[0.72rem] uppercase tracking-[0.24em] text-blue-100/80">
+                            <a class="transition hover:text-white" th:href="@{/dashboard}">Dashboard</a>
+                            <span>/</span>
+                            <a class="transition hover:text-white" th:href="@{/semesters}">Semester Board</a>
+                            <span>/</span>
+                            <a class="transition hover:text-white" th:href="@{/semesters/{id}(id=${assignment.semester.id})}" th:text="${assignment.semester.code}">SP26</a>
+                            <span>/</span>
+                            <a class="transition hover:text-white" th:href="@{/assignments/{id}(id=${assignment.id})}" th:text="${assignment.assignmentName}">Week 3</a>
+                            <span>/</span>
+                            <a class="transition hover:text-white" th:href="@{/assignments/{id}/submissions/upload(id=${assignment.id})}">Submission Intake</a>
+                            <span>/</span>
+                            <span>Fix Structure</span>
+                        </div>
+                        <h1 class="font-['DM_Serif_Display'] text-4xl leading-none tracking-[-0.04em] lg:text-[3.25rem]">Fix Submission Structure</h1>
+                        <p class="mt-4 max-w-3xl text-sm leading-6 text-blue-50/88">
+                            Restructure the file paths for
+                            <strong th:text="${submission.submitterName}">student-a</strong>'s rejected submission.
+                            Rename, move, or delete files to match the expected layout, then apply the fix.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid gap-6 px-4 py-5 lg:grid-cols-[220px_minmax(0,1fr)] lg:px-6 lg:py-6">
+                <aside class="lg:sticky lg:top-24 lg:self-start">
+                    <div th:replace="~{fragments/workspace-nav :: assignmentStages(${assignment.id}, 'intake')}"></div>
+                </aside>
+
+                <div class="min-w-0 space-y-6">
+
+                    <!-- Rejection Info Card -->
+                    <section class="overflow-hidden rounded-[24px] border border-rose-200 bg-rose-50/50 shadow-[0_12px_30px_rgba(28,25,23,0.04)]">
+                        <div class="px-6 py-5">
+                            <div class="flex flex-wrap items-start gap-4">
+                                <div class="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-rose-100">
+                                    <span class="material-symbols-outlined text-[22px] text-rose-600">error</span>
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <h2 class="font-['DM_Serif_Display'] text-2xl leading-none tracking-[-0.03em] text-rose-900">Validation Failed</h2>
+                                    <div class="mt-3 flex flex-wrap items-center gap-3">
+                                        <span class="inline-flex rounded-full bg-rose-100 px-3 py-1 text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-rose-700"
+                                              th:text="${validationCodeLabels[submission.validationCode] != null ? validationCodeLabels[submission.validationCode] : submission.validationCode}">
+                                            Error Code
+                                        </span>
+                                        <span class="text-sm text-rose-700" th:text="${submission.submitterName}">student-a</span>
+                                    </div>
+                                    <p class="mt-3 rounded-2xl bg-white/80 px-4 py-3 text-sm leading-6 text-rose-800"
+                                       th:text="${submission.validationMessage}">
+                                        Error details
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Expected Structure Reference -->
+                    <section class="overflow-hidden rounded-[24px] border border-stone-200 bg-white shadow-[0_12px_30px_rgba(28,25,23,0.04)]">
+                        <div class="border-b border-stone-100 px-6 py-4">
+                            <div class="flex flex-wrap items-center justify-between gap-3">
+                                <div>
+                                    <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-500">Reference</p>
+                                    <h3 class="mt-1 font-['Newsreader'] text-xl font-semibold leading-none text-stone-950">Expected Structure</h3>
+                                </div>
+                                <span class="rounded-full bg-stone-100 px-3 py-1.5 text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-700"
+                                      th:text="${assignment.gradingMode}">JAVA_CORE</span>
+                            </div>
+                        </div>
+                        <div class="px-6 py-4">
+                            <div class="overflow-hidden rounded-[18px] bg-[#002366] text-blue-50 shadow-[0_12px_28px_rgba(0,35,102,0.15)]">
+                                <pre class="overflow-x-auto px-5 py-4 text-xs leading-6" th:if="${assignment.javaCoreMode}">student-folder/
+├── Main.java        ← required, at root
+├── Helper.java      ← optional, at root
+└── Utils.java       ← no subfolders, no package declarations</pre>
+                                <pre class="overflow-x-auto px-5 py-4 text-xs leading-6" th:if="${assignment.oopMode}">student-folder/
+├── src/main/java/com/example/Main.java
+├── src/main/java/com/example/model/Student.java
+└── package declarations must match folder path</pre>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- File Structure Editor -->
+                    <section class="overflow-hidden rounded-[24px] border border-stone-200 bg-white shadow-[0_12px_30px_rgba(28,25,23,0.04)]"
+                             x-data="fixStructureEditor()">
+                        <div class="border-b border-stone-100 px-6 py-5">
+                            <div class="flex flex-wrap items-center justify-between gap-4">
+                                <div>
+                                    <p class="mb-1 text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-stone-400">Structure Editor</p>
+                                    <h2 class="font-['DM_Serif_Display'] text-3xl leading-none tracking-[-0.03em] text-stone-900">Edit File Paths</h2>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <div class="inline-flex items-center gap-2 rounded-full bg-stone-100 px-3 py-1.5 text-[0.75rem] font-medium text-stone-600">
+                                        <span class="material-symbols-outlined text-[18px]">description</span>
+                                        <span x-text="activeFileCount + ' file(s)'">0 file(s)</span>
+                                    </div>
+                                    <div class="inline-flex items-center gap-2 rounded-full bg-amber-50 px-3 py-1.5 text-[0.75rem] font-medium text-amber-700"
+                                         x-show="changedCount > 0"
+                                         x-transition>
+                                        <span class="material-symbols-outlined text-[18px]">edit</span>
+                                        <span x-text="changedCount + ' changed'">0 changed</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Auto-suggestion banner -->
+                            <div class="mt-4 flex items-start gap-3 rounded-2xl bg-blue-50 px-4 py-3"
+                                 x-show="changedCount > 0 || deletedCount > 0"
+                                 x-transition>
+                                <span class="material-symbols-outlined mt-0.5 text-[20px] text-blue-600">auto_fix_high</span>
+                                <div class="text-sm leading-6 text-blue-800">
+                                    <strong>Auto-fix applied!</strong> The system has pre-filled the suggested corrections below.
+                                    Review the changes and click <strong>"Apply Fix &amp; Re-validate"</strong> to confirm,
+                                    or adjust the paths manually.
+                                </div>
+                            </div>
+                        </div>
+
+                        <form th:action="@{/assignments/{aid}/submissions/{sid}/fix-structure(aid=${assignment.id}, sid=${submission.id})}"
+                              method="post"
+                              class="space-y-0"
+                              id="fix-structure-form">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+                            <div class="divide-y divide-stone-100">
+                                <template x-for="(file, index) in files" :key="file.originalPath">
+                                    <div class="px-6 py-4 transition-all duration-200"
+                                         :class="file.deleted ? 'bg-rose-50/50 opacity-60' : (file.changed ? 'bg-amber-50/30' : '')">
+
+                                        <input type="hidden" name="originalPath" :value="file.originalPath">
+                                        <input type="hidden" name="newPath" :value="file.deleted ? '' : file.newPath">
+                                        <template x-if="file.deleted">
+                                            <input type="hidden" name="deletedPath" :value="file.originalPath">
+                                        </template>
+
+                                        <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:gap-4">
+                                            <!-- File icon + original path -->
+                                            <div class="min-w-0 flex-1">
+                                                <div class="flex items-center gap-2 mb-2">
+                                                    <span class="material-symbols-outlined text-[20px]"
+                                                          :class="file.deleted ? 'text-rose-400' : (file.newPath.endsWith('.java') ? 'text-blue-600' : 'text-stone-400')">
+                                                        <span x-text="file.deleted ? 'delete' : 'description'"></span>
+                                                    </span>
+                                                    <span class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-400">
+                                                        Original Path
+                                                    </span>
+                                                </div>
+                                                <div class="rounded-xl bg-stone-100 px-3 py-2 font-mono text-[0.8rem] text-stone-600"
+                                                     x-text="file.originalPath">
+                                                </div>
+
+                                                <!-- Arrow + new path input -->
+                                                <div class="mt-3 flex items-center gap-2">
+                                                    <span class="material-symbols-outlined text-[20px] text-stone-400">arrow_downward</span>
+                                                    <span class="text-[0.72rem] font-semibold uppercase tracking-[0.18em]"
+                                                          :class="file.changed ? 'text-amber-600' : 'text-stone-400'">
+                                                        New Path
+                                                    </span>
+                                                    <span x-show="file.suggestedPath !== null && file.changed && !file.deleted"
+                                                          class="ml-auto rounded-full bg-blue-100 px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wider text-blue-700"
+                                                          x-transition>
+                                                        Suggested Fix
+                                                    </span>
+                                                    <span x-show="file.suggestedPath === null && file.changed && !file.deleted"
+                                                          class="ml-auto rounded-full bg-amber-100 px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wider text-amber-700"
+                                                          x-transition>
+                                                        Modified
+                                                    </span>
+                                                </div>
+                                                <input type="text"
+                                                       class="mt-1 w-full rounded-xl border border-stone-200 bg-white px-3 py-2.5 font-mono text-[0.8rem] text-stone-900 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                                                       :class="file.deleted ? 'line-through opacity-50' : ''"
+                                                       :value="file.newPath"
+                                                       :disabled="file.deleted"
+                                                       @input="updatePath(index, $event.target.value)"
+                                                       :placeholder="file.originalPath">
+                                            </div>
+
+                                            <!-- Actions -->
+                                            <div class="flex items-start gap-2 sm:pt-9">
+                                                <button type="button"
+                                                        class="inline-flex items-center gap-1 rounded-xl border border-stone-200 bg-white px-3 py-2 text-[0.75rem] font-semibold text-stone-600 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+                                                        @click="resetPath(index)"
+                                                        x-show="file.changed && !file.deleted"
+                                                        x-transition>
+                                                    <span class="material-symbols-outlined text-[16px]">undo</span>
+                                                    Reset
+                                                </button>
+                                                <button type="button"
+                                                        class="inline-flex items-center gap-1 rounded-xl border px-3 py-2 text-[0.75rem] font-semibold transition"
+                                                        :class="file.deleted
+                                                            ? 'border-green-200 bg-green-50 text-green-700 hover:bg-green-100'
+                                                            : 'border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100'"
+                                                        @click="toggleDelete(index)">
+                                                    <span class="material-symbols-outlined text-[16px]"
+                                                          x-text="file.deleted ? 'undo' : 'delete'"></span>
+                                                    <span x-text="file.deleted ? 'Restore' : 'Delete'"></span>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <!-- Code Preview -->
+                                        <div class="mt-3" x-show="!file.deleted && file.preview">
+                                            <details class="group">
+                                                <summary class="mb-1 cursor-pointer text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-400 transition hover:text-stone-600">
+                                                    <span class="material-symbols-outlined inline-block align-middle text-[14px] transition group-open:rotate-90">chevron_right</span>
+                                                    Preview
+                                                </summary>
+                                                <pre class="overflow-x-auto rounded-xl bg-[#1e293b] px-4 py-3 text-xs leading-5 text-blue-100 shadow-inner"
+                                                     x-text="file.preview"></pre>
+                                            </details>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+
+                            <!-- Empty state -->
+                            <div class="flex flex-col items-center justify-center px-6 py-14 text-center"
+                                 th:if="${#lists.isEmpty(submissionFiles)}">
+                                <span class="material-symbols-outlined mb-3 text-[40px] text-rose-300">folder_off</span>
+                                <p class="text-sm font-semibold text-stone-800">No files found for this submission</p>
+                                <p class="mt-1.5 max-w-sm text-sm text-stone-500">The files may not have been stored during the initial upload. Try re-uploading the archive.</p>
+                            </div>
+
+                            <!-- Submit bar -->
+                            <div class="border-t border-stone-100 px-6 py-5"
+                                 th:if="${!#lists.isEmpty(submissionFiles)}">
+                                <div class="flex flex-wrap items-center justify-between gap-4">
+                                    <div class="text-sm text-stone-500">
+                                        <span x-show="changedCount === 0 && deletedCount === 0">No changes made yet. Edit file paths above to fix the structure.</span>
+                                        <span x-show="changedCount > 0 || deletedCount > 0"
+                                              x-text="buildSummaryText()" class="font-medium text-stone-700"></span>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <a th:href="@{/assignments/{aid}/submissions/upload(aid=${assignment.id})}"
+                                           class="inline-flex items-center gap-2 rounded-2xl border border-stone-300 bg-white px-5 py-3 text-sm font-semibold text-stone-900 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700">
+                                            <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+                                            Cancel
+                                        </a>
+                                        <button type="submit"
+                                                class="inline-flex items-center gap-2 rounded-2xl bg-blue-700 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50"
+                                                :disabled="activeFileCount === 0">
+                                            <span class="material-symbols-outlined text-[18px]">check_circle</span>
+                                            Apply Fix &amp; Re-validate
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </section>
+
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+</div>
+
+<script th:inline="javascript">
+    function fixStructureEditor() {
+        const rawFiles = /*[[${submissionFiles}]]*/ [];
+        const suggestedPaths = /*[[${suggestedPaths}]]*/ {};
+
+        const initialFiles = rawFiles.map(f => {
+            const suggested = suggestedPaths[f.relativePath];
+            const hasSuggestion = suggested !== undefined && suggested !== null;
+            const suggestDelete = hasSuggestion && suggested === '';
+            const suggestRename = hasSuggestion && suggested !== '' && suggested !== f.relativePath;
+            const newPath = suggestRename ? suggested : f.relativePath;
+
+            return {
+                originalPath: f.relativePath,
+                newPath: newPath,
+                suggestedPath: hasSuggestion ? suggested : null,
+                preview: f.previewSnippet || '',
+                sizeBytes: f.sizeBytes || 0,
+                deleted: suggestDelete,
+                changed: suggestRename
+            };
+        });
+
+        return {
+            files: initialFiles,
+
+            get activeFileCount() {
+                return this.files.filter(f => !f.deleted).length;
+            },
+
+            get changedCount() {
+                return this.files.filter(f => f.changed && !f.deleted).length;
+            },
+
+            get deletedCount() {
+                return this.files.filter(f => f.deleted).length;
+            },
+
+            updatePath(index, newValue) {
+                this.files[index].newPath = newValue;
+                this.files[index].changed = (newValue !== this.files[index].originalPath);
+            },
+
+            resetPath(index) {
+                this.files[index].newPath = this.files[index].originalPath;
+                this.files[index].changed = false;
+            },
+
+            toggleDelete(index) {
+                this.files[index].deleted = !this.files[index].deleted;
+                if (!this.files[index].deleted) {
+                    // Restore to suggested path if available, otherwise original
+                    const suggested = this.files[index].suggestedPath;
+                    if (suggested && suggested !== '') {
+                        this.files[index].newPath = suggested;
+                        this.files[index].changed = (suggested !== this.files[index].originalPath);
+                    } else {
+                        this.files[index].newPath = this.files[index].originalPath;
+                        this.files[index].changed = false;
+                    }
+                }
+            },
+
+            buildSummaryText() {
+                const parts = [];
+                if (this.changedCount > 0) parts.push(this.changedCount + ' file(s) renamed');
+                if (this.deletedCount > 0) parts.push(this.deletedCount + ' file(s) deleted');
+                return parts.join(', ') + '. Click "Apply Fix" to re-validate.';
+            }
+        };
+    }
+</script>
+</body>
+</html>

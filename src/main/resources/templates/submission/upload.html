@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Submission Intake')}"></head>
+<body class="bg-white text-stone-950">
+<div class="min-h-screen">
+    <header th:replace="~{fragments/header :: header}"></header>
+
+    <main class="mx-auto max-w-[1680px] px-4 py-6 lg:px-6"
+          th:attr="data-submission-upload-target=${uploadAnchor}">
+        <div th:replace="~{fragments/alerts :: alerts}"></div>
+
+        <section class="rounded-[30px] border border-stone-200 bg-white shadow-[0_18px_40px_rgba(28,25,23,0.06)]">
+            <div class="border-b border-stone-100 bg-gradient-to-r from-[#002366] via-[#11534a] to-[#0f766e] px-6 py-6 text-white lg:px-8">
+                <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+                    <div class="min-w-0 max-w-4xl">
+                        <div class="mb-3 flex flex-wrap items-center gap-2 text-[0.72rem] uppercase tracking-[0.24em] text-blue-100/80">
+                            <a class="transition hover:text-white" th:href="@{/dashboard}">Dashboard</a>
+                            <span>/</span>
+                            <a class="transition hover:text-white" th:href="@{/semesters}">Semester Board</a>
+                            <span>/</span>
+                            <a class="transition hover:text-white" th:href="@{/semesters/{id}(id=${assignment.semester.id})}" th:text="${assignment.semester.code}">SP26</a>
+                            <span>/</span>
+                            <a class="transition hover:text-white" th:href="@{/assignments/{id}(id=${assignment.id})}" th:text="${assignment.assignmentName}">Week 3</a>
+                            <span>/</span>
+                            <span>Submission Intake</span>
+                        </div>
+                        <h1 class="font-['DM_Serif_Display'] text-4xl leading-none tracking-[-0.04em] lg:text-[3.25rem]">Submission Intake</h1>
+                        <p class="mt-4 max-w-3xl text-sm leading-6 text-blue-50/88"
+                           th:text="${assignment.course.courseCode + ' - ' + assignment.course.courseName + ' | ' + assignment.gradingMode + ' | upload one ZIP and route each student folder into validation'}">
+                            SWE201 - Software Engineering | JAVA_CORE | upload one ZIP and route each student folder into validation
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="grid gap-6 px-4 py-5 lg:grid-cols-[220px_minmax(0,1fr)] lg:px-6 lg:py-6">
+                <aside class="lg:sticky lg:top-24 lg:self-start">
+                    <div th:replace="~{fragments/workspace-nav :: assignmentStages(${assignment.id}, 'intake')}"></div>
+                </aside>
+
+                <div class="min-w-0 space-y-6">
+                    <section id="intake-upload" class="overflow-hidden rounded-[24px] border border-stone-200 bg-white shadow-[0_12px_30px_rgba(28,25,23,0.04)]">
+                        <div class="border-b border-stone-100 px-6 py-5">
+                            <div class="flex flex-wrap items-center justify-between gap-4">
+                                <div>
+                                    <p class="mb-1 text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-stone-400">Upload Archive</p>
+                                    <h2 class="font-['DM_Serif_Display'] text-3xl leading-none tracking-[-0.03em] text-stone-900">One ZIP, many submissions</h2>
+                                </div>
+                                <div class="inline-flex items-center gap-2 rounded-full bg-stone-100 px-3 py-1.5 text-[0.75rem] font-medium text-stone-600">
+                                    <span class="material-symbols-outlined text-[18px]">folder_zip</span>
+                                    Teacher-only upload flow
+                                </div>
+                            </div>
+                        </div>
+
+                        <form th:action="@{/assignments/{assignmentId}/submissions/upload(assignmentId=${assignment.id})}"
+                              th:object="${submissionUploadForm}"
+                              method="post"
+                              enctype="multipart/form-data"
+                              class="space-y-5 px-6 py-6"
+                              data-submission-upload-form>
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                            <input type="hidden" th:field="*{assignmentId}">
+
+                            <label class="block rounded-[24px] border border-dashed border-stone-300 bg-stone-50 px-5 py-6">
+                                <span class="mb-2 flex items-center gap-2 text-[0.76rem] font-semibold uppercase tracking-[0.18em] text-stone-400">
+                                    <span class="material-symbols-outlined text-[18px]">upload_file</span>
+                                    Submission Archive
+                                </span>
+                                <input class="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-900 outline-none transition file:mr-3 file:rounded-full file:border-0 file:bg-blue-700 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-blue-800"
+                                       id="archiveFile"
+                                       th:field="*{archiveFile}"
+                                       type="file"
+                                       accept=".zip,application/zip">
+                                <p class="mt-3 text-sm text-stone-500">Upload a single archive where each top-level folder belongs to one student submission.</p>
+                                <p class="mt-2 text-sm font-medium text-stone-800" data-selected-archive-name>No file selected.</p>
+
+                                <div class="mt-4 grid gap-3 sm:grid-cols-3">
+                                    <div class="rounded-[18px] bg-white px-4 py-4">
+                                        <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-400">Max Archive</p>
+                                        <p class="mt-2 text-sm font-semibold text-stone-900" th:text="${uploadGuide.maxArchiveSizeMb + ' MB'}">25 MB</p>
+                                    </div>
+                                    <div class="rounded-[18px] bg-white px-4 py-4">
+                                        <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-400">Files / Submission</p>
+                                        <p class="mt-2 text-sm font-semibold text-stone-900" th:text="${uploadGuide.maxFilesPerSubmission}">10</p>
+                                    </div>
+                                    <div class="rounded-[18px] bg-white px-4 py-4">
+                                        <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-400">Folder Depth</p>
+                                        <p class="mt-2 text-sm font-semibold text-stone-900" th:text="${uploadGuide.maxFolderDepth}">5</p>
+                                    </div>
+                                </div>
+                            </label>
+
+                            <section class="rounded-[24px] border border-stone-200 bg-stone-50 px-5 py-5">
+                                <div class="flex flex-wrap items-center justify-between gap-3">
+                                    <div>
+                                        <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-500">Archive Layout</p>
+                                        <h3 class="mt-1 font-['Newsreader'] text-2xl font-semibold leading-none text-stone-950">Expected ZIP structure</h3>
+                                    </div>
+                                    <span class="rounded-full bg-white px-3 py-1.5 text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-700"
+                                          th:text="${assignment.gradingMode}">JAVA_CORE</span>
+                                </div>
+
+                                <div class="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1fr)_240px]">
+                                    <div class="overflow-hidden rounded-[20px] bg-[#002366] text-blue-50 shadow-[0_18px_34px_rgba(0,35,102,0.18)]">
+                                        <pre class="overflow-x-auto px-5 py-5 text-xs leading-6" th:if="${assignment.javaCoreMode}">submissions.zip
++-- s2213001/
+|   +-- Main.java
+|   +-- Helper.java
++-- s2213002/
+    +-- Main.java</pre>
+                                        <pre class="overflow-x-auto px-5 py-5 text-xs leading-6" th:if="${assignment.oopMode}">submissions.zip
++-- s2213001/
+|   +-- src/main/java/com/example/Main.java
+|   +-- src/main/java/com/example/model/Student.java
++-- s2213002/
+    +-- src/com/example/App.java</pre>
+                                    </div>
+
+                                    <div class="space-y-3">
+                                        <div class="rounded-[18px] bg-white px-4 py-4">
+                                            <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-400">Allowed Files</p>
+                                            <p class="mt-2 text-sm font-semibold text-stone-900"
+                                               th:text="${#strings.listJoin(uploadGuide.allowedExtensions, ', ')}">.java, .txt</p>
+                                        </div>
+                                        <div class="rounded-[18px] bg-white px-4 py-4" th:if="${assignment.javaCoreMode}">
+                                            <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-400">Java Core Rule</p>
+                                            <p class="mt-2 text-sm leading-6 text-stone-700">Keep Java files flat at the student root. <code>Main.java</code> is required and package declarations are not allowed.</p>
+                                        </div>
+                                        <div class="rounded-[18px] bg-white px-4 py-4" th:if="${assignment.oopMode}">
+                                            <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-400">OOP Rule</p>
+                                            <p class="mt-2 text-sm leading-6 text-stone-700">Package folders are allowed, but each declared <code>package</code> must match the source tree.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+
+                            <div class="flex flex-wrap items-center justify-end gap-3 border-t border-stone-100 pt-5">
+                                <button class="inline-flex items-center gap-2 rounded-2xl bg-blue-700 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-800"
+                                        type="submit">
+                                    <span class="material-symbols-outlined text-[18px]">cloud_upload</span>
+                                    Upload Archive
+                                </button>
+                                <a class="inline-flex items-center gap-2 rounded-2xl border border-stone-300 bg-white px-5 py-3 text-sm font-semibold text-stone-900 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+                                   th:if="${canOpenPlagiarism}"
+                                   th:href="@{/assignments/{assignmentId}/plagiarism(assignmentId=${assignment.id})}">
+                                    <span class="material-symbols-outlined text-[18px]">policy</span>
+                                    <span th:text="${canRunPlagiarism ? 'Open Plagiarism Review' : 'Review Intake Before Plagiarism'}">Open Plagiarism Review</span>
+                                </a>
+                                <a class="inline-flex items-center gap-2 rounded-2xl border border-stone-300 bg-white px-5 py-3 text-sm font-semibold text-stone-900 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+                                   th:href="@{/assignments/{assignmentId}/grading(assignmentId=${assignment.id})}">
+                                    <span class="material-symbols-outlined text-[18px]">grading</span>
+                                    Open Grading Workspace
+                                </a>
+                            </div>
+                        </form>
+                    </section>
+
+                    <section id="stored-submissions" class="overflow-hidden rounded-[24px] border border-stone-200 bg-white shadow-[0_12px_30px_rgba(28,25,23,0.04)]">
+                        <div class="border-b border-stone-100 px-6 py-5">
+                            <div class="flex flex-wrap items-center justify-between gap-4">
+                                <div>
+                                    <p class="mb-1 text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-stone-400">Stored Submissions</p>
+                                    <h2 class="font-['DM_Serif_Display'] text-3xl leading-none tracking-[-0.03em] text-stone-900">Current intake status</h2>
+                                </div>
+                                <div class="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1.5 text-[0.75rem] font-medium text-blue-700">
+                                    <span class="material-symbols-outlined text-[18px]">inventory_2</span>
+                                    <span th:text="${totalSubmissions + ' stored submission(s)'}">0 stored submission(s)</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-5 px-6 py-6">
+                            <div class="grid gap-4 sm:grid-cols-3" th:if="${uploadSummary != null}">
+                                <div class="rounded-[22px] bg-stone-50 px-4 py-4">
+                                    <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-400">Last Upload</p>
+                                    <p class="mt-2 text-lg font-semibold text-stone-900" th:text="${uploadSummary.totalSubmissions + ' processed'}">0 processed</p>
+                                </div>
+                                <div class="rounded-[22px] bg-blue-50 px-4 py-4">
+                                    <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-blue-700/70">Validated</p>
+                                    <p class="mt-2 text-lg font-semibold text-blue-800" th:text="${uploadSummary.validatedCount}">0</p>
+                                </div>
+                                <div class="rounded-[22px] bg-rose-50 px-4 py-4">
+                                    <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-rose-700/70">Rejected</p>
+                                    <p class="mt-2 text-lg font-semibold text-rose-800" th:text="${uploadSummary.rejectedCount}">0</p>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-col items-center justify-center rounded-[22px] border-2 border-dashed border-stone-300 bg-stone-50 px-6 py-14 text-center"
+                                 th:if="${#lists.isEmpty(submissions)}">
+                                <span class="material-symbols-outlined mb-3 text-[40px] text-[#0047a6]/25">upload_file</span>
+                                <p class="text-sm font-semibold text-stone-800">No submission uploaded yet</p>
+                                <p class="mt-1.5 max-w-sm text-sm text-stone-500">Upload a ZIP archive above to start validating and grading student submissions.</p>
+                            </div>
+
+                            <div class="overflow-hidden rounded-[22px] border border-stone-200" th:if="${!#lists.isEmpty(submissions)}">
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-full divide-y divide-stone-200 text-sm">
+                                        <thead class="bg-stone-50 text-left text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-500">
+                                        <tr>
+                                            <th class="px-4 py-3">Submitter</th>
+                                            <th class="px-4 py-3">Status</th>
+                                            <th class="px-4 py-3">Validation</th>
+                                            <th class="px-4 py-3">Details</th>
+                                            <th class="px-4 py-3">Files</th>
+                                            <th class="px-4 py-3">Actions</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-stone-100 bg-white">
+                                        <tr th:each="submission : ${submissions}" class="align-top">
+                                            <td class="px-4 py-4 font-semibold text-stone-900" th:text="${submission.submitterName}">student-a</td>
+                                            <td class="px-4 py-4">
+                                                <span class="inline-flex rounded-full px-3 py-1 text-[0.72rem] font-semibold uppercase tracking-[0.16em]"
+                                                      th:classappend="${submission.validated ? ' bg-blue-50 text-blue-700' : (submission.rejected ? ' bg-rose-50 text-rose-700' : ' bg-amber-50 text-amber-700')}">
+                                                    <span th:text="${submission.status}">VALIDATED</span>
+                                                </span>
+                                            </td>
+                                            <td class="px-4 py-4 text-stone-600"
+                                                th:text="${submission.validated ? 'Ready For Plagiarism' : (validationCodeLabels[submission.validationCode] != null ? validationCodeLabels[submission.validationCode] : submission.validationCode)}">
+                                                Ready For Plagiarism
+                                            </td>
+                                            <td class="px-4 py-4 text-stone-500"
+                                                th:text="${submission.validationMessage != null ? submission.validationMessage : 'All validation checks passed.'}">
+                                                All validation checks passed.
+                                            </td>
+                                            <td class="px-4 py-4 text-stone-600" th:text="${submission.fileCount}">2</td>
+                                            <td class="px-4 py-4">
+                                                <a th:if="${submission.rejected and fixableSubmissionMap[submission.id]}"
+                                                   th:href="@{/assignments/{aid}/submissions/{sid}/fix-structure(aid=${assignment.id}, sid=${submission.id})}"
+                                                   class="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1.5 text-[0.72rem] font-semibold text-amber-700 transition hover:bg-amber-100 hover:text-amber-800">
+                                                    <span class="material-symbols-outlined text-[16px]">build</span>
+                                                    Fix Structure
+                                                </a>
+                                                <span th:if="${submission.rejected and fixableSubmissionMap[submission.id] != true}"
+                                                      class="inline-flex items-center gap-1.5 text-[0.72rem] text-stone-400">
+                                                    <span class="material-symbols-outlined text-[14px]">block</span>
+                                                    Source edit required
+                                                </span>
+                                                <span th:if="${submission.validated}"
+                                                      class="inline-flex items-center gap-1.5 text-[0.72rem] text-stone-400">
+                                                    <span class="material-symbols-outlined text-[14px]">check_circle</span>
+                                                    Ready
+                                                </span>
+                                            </td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section id="auto-grade" class="overflow-hidden rounded-[24px] border border-stone-200 bg-white shadow-[0_12px_30px_rgba(28,25,23,0.04)]"
+                             th:if="${canRunPlagiarism}">
+                        <div class="border-b border-stone-100 bg-gradient-to-r from-[#A52E01]/10 to-[#D4560A]/10 px-6 py-5">
+                            <div class="flex flex-wrap items-center justify-between gap-4">
+                                <div>
+                                    <p class="mb-1 text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-[#A52E01]">One-Click Grading</p>
+                                    <h2 class="font-['DM_Serif_Display'] text-3xl leading-none tracking-[-0.03em] text-stone-900">Auto Grade</h2>
+                                </div>
+                                <div class="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1.5 text-[0.75rem] font-medium text-blue-700">
+                                    <span class="material-symbols-outlined text-[18px]">check_circle</span>
+                                    <span th:text="${validatedCount + ' validated, ready to grade'}">3 validated, ready to grade</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="px-6 py-6">
+                            <div class="rounded-[22px] bg-stone-50 px-5 py-5">
+                                <p class="text-sm leading-6 text-stone-600">
+                                    Run the full grading pipeline in one click. This will automatically execute:
+                                </p>
+                                <div class="mt-3 flex flex-wrap items-center gap-2 text-sm font-medium text-stone-700">
+                                    <span class="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 shadow-sm">
+                                        <span class="material-symbols-outlined text-[16px] text-blue-600">looks_one</span>
+                                        Plagiarism Check
+                                    </span>
+                                    <span class="material-symbols-outlined text-[16px] text-stone-400">arrow_forward</span>
+                                    <span class="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 shadow-sm">
+                                        <span class="material-symbols-outlined text-[16px] text-blue-600">looks_two</span>
+                                        Create Snapshot
+                                    </span>
+                                    <span class="material-symbols-outlined text-[16px] text-stone-400">arrow_forward</span>
+                                    <span class="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 shadow-sm">
+                                        <span class="material-symbols-outlined text-[16px] text-blue-600">looks_3</span>
+                                        Grade All
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="mt-5 flex flex-wrap items-center gap-3">
+                                <form th:action="@{/assignments/{assignmentId}/auto-grade(assignmentId=${assignment.id})}"
+                                      method="post"
+                                      class="m-0"
+                                      id="auto-grade-form"
+                                      data-no-loading-state>
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                    <button class="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-[#A52E01] to-[#D4560A] px-6 py-3 text-sm font-semibold text-white shadow-md transition hover:from-[#8A2600] hover:to-[#B84A08] hover:shadow-lg"
+                                            type="submit"
+                                            id="auto-grade-btn">
+                                        <span class="material-symbols-outlined text-[18px]">bolt</span>
+                                        Auto Grade All Submissions
+                                    </button>
+                                </form>
+
+                                <span class="text-sm text-stone-500">or continue with the manual flow:</span>
+
+                                <a class="inline-flex items-center gap-2 rounded-2xl border border-stone-300 bg-white px-4 py-2.5 text-sm font-semibold text-stone-900 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+                                   th:href="@{/assignments/{assignmentId}/plagiarism(assignmentId=${assignment.id})}">
+                                    <span class="material-symbols-outlined text-[18px]">policy</span>
+                                    Plagiarism Review
+                                </a>
+                                <a class="inline-flex items-center gap-2 rounded-2xl border border-stone-300 bg-white px-4 py-2.5 text-sm font-semibold text-stone-900 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+                                   th:href="@{/assignments/{assignmentId}/grading(assignmentId=${assignment.id})}">
+                                    <span class="material-symbols-outlined text-[18px]">grading</span>
+                                    Grading Workspace
+                                </a>
+                            </div>
+                        </div>
+                    </section>
+
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+</div>
+
+<script th:inline="javascript">
+    (() => {
+        const scrollToTarget = (selector) => {
+            const targetElement = document.querySelector(selector);
+            if (targetElement) {
+                window.requestAnimationFrame(() => {
+                    targetElement.scrollIntoView({ block: 'start' });
+                });
+            }
+        };
+
+        const resetButton = (submitButton) => {
+            if (!submitButton) return;
+            submitButton.disabled = false;
+            submitButton.classList.remove('opacity-70', 'cursor-not-allowed');
+        };
+
+        const forceReload = (hash) => {
+            window.sessionStorage.setItem('submission-upload-anchor', hash || '#stored-submissions');
+            window.location.replace(window.location.pathname);
+        };
+
+        const bindUploadWorkspace = () => {
+            const form = document.querySelector('[data-submission-upload-form]');
+            const fileInput = document.querySelector('#archiveFile');
+            const fileNameLabel = document.querySelector('[data-selected-archive-name]');
+
+            if (fileInput && fileNameLabel) {
+                const updateFileName = () => {
+                    const selectedFile = fileInput.files && fileInput.files.length > 0 ? fileInput.files[0].name : 'No file selected.';
+                    fileNameLabel.textContent = selectedFile;
+                };
+
+                fileInput.addEventListener('change', updateFileName);
+                updateFileName();
+            }
+
+            if (form && !form.dataset.asyncBound) {
+                form.dataset.asyncBound = 'true';
+                form.addEventListener('submit', async (event) => {
+                    event.preventDefault();
+
+                    const formData = new FormData(form);
+                    const submitButton = form.querySelector('button[type="submit"]');
+                    if (submitButton) {
+                        submitButton.disabled = true;
+                        submitButton.classList.add('opacity-70', 'cursor-not-allowed');
+                    }
+
+                    const csrfInput = form.querySelector('input[name="_csrf"]');
+                    const csrfToken = csrfInput ? csrfInput.value : null;
+
+                    const headers = { 'X-Requested-With': 'XMLHttpRequest' };
+                    if (csrfToken) {
+                        headers['X-CSRF-TOKEN'] = csrfToken;
+                    }
+
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 120000);
+
+                    try {
+                        const response = await fetch(form.action, {
+                            method: 'POST',
+                            body: formData,
+                            credentials: 'same-origin',
+                            signal: controller.signal,
+                            headers: headers
+                        });
+                        clearTimeout(timeoutId);
+
+                        if (!response.ok && response.status === 403) {
+                            forceReload('#intake-upload');
+                            return;
+                        }
+
+                        const html = await response.text();
+                        const parser = new DOMParser();
+                        const nextDocument = parser.parseFromString(html, 'text/html');
+                        const nextMain = nextDocument.querySelector('main');
+                        const currentMain = document.querySelector('main');
+
+                        if (nextMain && currentMain) {
+                            currentMain.innerHTML = nextMain.innerHTML;
+                            document.title = nextDocument.title || document.title;
+                            currentMain.dataset.submissionUploadTarget = nextMain.dataset.submissionUploadTarget || '';
+                            if (window.Alpine && typeof window.Alpine.initTree === 'function') {
+                                window.Alpine.initTree(currentMain);
+                            }
+                            bindUploadWorkspace();
+                            const explicitTarget = nextMain.dataset.submissionUploadTarget;
+                            const fallbackTarget = response.url && response.url.includes('#intake-upload')
+                                    ? '#intake-upload'
+                                    : '#stored-submissions';
+                            const nextTarget = explicitTarget ? '#' + explicitTarget : fallbackTarget;
+                            scrollToTarget(nextTarget);
+                        } else {
+                            forceReload('#stored-submissions');
+                        }
+                    } catch (error) {
+                        clearTimeout(timeoutId);
+                        resetButton(submitButton);
+                        form.classList.remove('is-submitting');
+                        form.submit();
+                    }
+                });
+            }
+        };
+
+        bindUploadWorkspace();
+
+        const restoreTarget = window.location.hash || window.sessionStorage.getItem('submission-upload-anchor');
+        if (restoreTarget) {
+            scrollToTarget(restoreTarget);
+            window.sessionStorage.removeItem('submission-upload-anchor');
+        }
+    })();
+</script>
+<script>
+    (function () {
+        var form = document.getElementById('auto-grade-form');
+        if (!form) return;
+        form.addEventListener('submit', function () {
+            var btn = document.getElementById('auto-grade-btn');
+            if (!btn) return;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="material-symbols-outlined text-[18px] animate-spin">progress_activity</span> Running pipeline\u2026 plagiarism \u2192 snapshot \u2192 grading';
+        });
+    })();
+</script>
+</body>
+</html>

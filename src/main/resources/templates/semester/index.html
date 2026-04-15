@@ -1,0 +1,268 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <head th:replace="~{fragments/head :: head('Semesters - JavaGrader')}"></head>
+  <body class="bg-white text-stone-950">
+    <div class="min-h-screen flex flex-col">
+      <header th:replace="~{fragments/header :: header}"></header>
+
+      <main class="flex-1 mx-auto w-full max-w-[1720px] px-4 py-4 lg:px-6">
+        <div th:replace="~{fragments/alerts :: alerts}"></div>
+
+        <section
+          class="overflow-hidden rounded-[28px] border border-stone-200 bg-white px-5 py-4 shadow-[0_18px_44px_rgba(0,35,102,0.06)] lg:px-6"
+        >
+          <div
+            class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"
+          >
+            <div class="max-w-3xl">
+              <h1
+                class="mt-2 font-['Newsreader'] text-[2.15rem] font-semibold leading-none tracking-[-0.035em] text-stone-950 lg:text-[2.55rem]"
+              >
+                Semester Board
+              </h1>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2">
+              <a
+                class="inline-flex items-center gap-2 rounded-full bg-[#006AFF] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#0056D6]"
+                th:href="@{/semesters/create}"
+              >
+                <span class="material-symbols-outlined text-[18px]"
+                  >add_circle</span
+                >
+                New Semester
+              </a>
+            </div>
+          </div>
+        </section>
+
+        <section class="mt-4 space-y-4">
+          <div
+            class="flex flex-col items-center justify-center rounded-[26px] border-2 border-dashed border-stone-300 bg-white px-6 py-16 text-center shadow-[0_14px_32px_rgba(96,125,139,0.05)]"
+            th:if="${#lists.isEmpty(semesterBoards)}"
+          >
+            <span class="material-symbols-outlined mb-4 text-[48px] text-[#0047a6]/30">calendar_month</span>
+            <p class="text-lg font-semibold text-stone-900">No semester yet</p>
+            <p class="mt-2 max-w-md text-sm text-stone-600">
+                Create your first semester to start organizing courses and assignments.
+            </p>
+            <a th:href="@{/semesters/create}"
+               class="mt-5 inline-flex items-center gap-2 rounded-2xl bg-[#0047a6] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#002366]">
+                <span class="material-symbols-outlined text-[18px]">add_circle</span>
+                Create Semester
+            </a>
+          </div>
+
+          <article
+            th:each="semesterBoard, semesterState : ${semesterBoards}"
+            th:attr="x-data=|{ open: ${semesterState.index == 0 ? 'true' : 'false'} }|"
+            class="overflow-hidden rounded-[30px] border border-[#cfdaf0] bg-[#f6f8ff] shadow-[0_18px_44px_rgba(0,35,102,0.08)] transition hover:shadow-[0_22px_52px_rgba(0,35,102,0.1)]"
+          >
+            <div class="bg-white/88 px-5 py-4 backdrop-blur-sm lg:px-6">
+              <div
+                class="grid cursor-pointer gap-4 xl:grid-cols-[minmax(0,1fr)_auto_auto] xl:items-center"
+                role="button"
+                tabindex="0"
+                @click="open = !open"
+                @keydown.enter.prevent="open = !open"
+                @keydown.space.prevent="open = !open"
+                x-bind:aria-expanded="open.toString()"
+              >
+                <div class="min-w-0">
+                  <div class="flex flex-wrap items-center gap-2">
+                    <span
+                      class="rounded-full bg-[#006AFF] px-2.5 py-1 text-[0.64rem] font-semibold uppercase tracking-[0.18em] text-white"
+                      th:text="${semesterBoard.semester.code}"
+                      >SP26</span
+                    >
+                    <span
+                      class="rounded-full bg-[#E0F0FF] px-2.5 py-1 text-[0.64rem] font-semibold uppercase tracking-[0.18em] text-[#006AFF]"
+                    >
+                      Active
+                    </span>
+                  </div>
+                  <h2
+                    class="mt-3 font-['Newsreader'] text-[2.1rem] font-semibold leading-none tracking-[-0.03em] text-stone-950 lg:text-[2.35rem]"
+                    th:text="${semesterBoard.semester.name}"
+                  >
+                    Spring 2026
+                  </h2>
+                  <p
+                    class="mt-1.5 text-[0.92rem] text-stone-800"
+                    th:text="${semesterBoard.semester.startDate + ' to ' + semesterBoard.semester.endDate}"
+                  >
+                    2026-01-01 to 2026-05-31
+                  </p>
+
+                  <div class="mt-3 flex flex-wrap items-center gap-2">
+                    <a
+                      class="inline-flex items-center gap-2 rounded-full bg-[#006AFF] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#0056D6]"
+                      th:href="@{/semesters/{id}(id=${semesterBoard.semester.id})}"
+                      @click.stop
+                    >
+                      <span class="material-symbols-outlined text-[18px]"
+                        >open_in_new</span
+                      >
+                      Open Semester
+                    </a>
+                    <a
+                      class="inline-flex items-center gap-2 rounded-full border border-stone-200 bg-white px-4 py-2 text-sm font-semibold text-stone-950 transition hover:bg-[#E0F0FF] hover:text-[#006AFF]"
+                      th:href="@{/courses/create(semesterId=${semesterBoard.semester.id})}"
+                      @click.stop
+                    >
+                      <span class="material-symbols-outlined text-[18px]"
+                        >school</span
+                      >
+                      New Course
+                    </a>
+                  </div>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2 xl:justify-end">
+                  <div
+                    class="flex min-w-[96px] flex-col items-center justify-center rounded-[20px] border border-stone-200 bg-[#F8FAFF] px-3 py-2 text-center"
+                  >
+                    <p
+                      class="text-[0.64rem] font-semibold uppercase tracking-[0.16em] text-stone-700"
+                    >
+                      Courses
+                    </p>
+                    <p
+                      class="mt-0.5 text-lg font-semibold text-stone-950"
+                      th:text="${#lists.size(semesterBoard.courses)}"
+                    >
+                      0
+                    </p>
+                  </div>
+                  <div
+                    class="flex min-w-[120px] flex-col items-center justify-center rounded-[20px] border border-stone-200 bg-[#FFF9F6] px-3 py-2 text-center"
+                  >
+                    <p
+                      class="text-[0.64rem] font-semibold uppercase tracking-[0.16em] text-stone-700"
+                    >
+                      Assignments
+                    </p>
+                    <p
+                      class="mt-0.5 text-lg font-semibold text-stone-950"
+                      th:text="${semesterBoard.assignmentCount}"
+                    >
+                      0
+                    </p>
+                  </div>
+                </div>
+
+                <div class="flex items-center xl:justify-end">
+                  <span
+                    class="inline-flex h-11 w-11 items-center justify-center rounded-full border border-stone-200 bg-white text-stone-950 transition"
+                    :class="open ? 'text-[#006AFF] bg-[#E0F0FF] border-[#cfe0ff]' : ''"
+                  >
+                    <span
+                      class="material-symbols-outlined text-[20px] transition"
+                      :class="open ? 'rotate-90' : ''"
+                      >chevron_right</span
+                    >
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div
+              x-show="open"
+              x-transition
+              x-cloak
+              class="border-t border-[#d7e1f3] bg-[#edf3ff] px-5 py-3 lg:px-6"
+            >
+              <div>
+                <div
+                  class="rounded-[24px] border border-dashed border-stone-300 bg-white px-5 py-8 text-center text-sm text-stone-800"
+                  th:if="${#lists.isEmpty(semesterBoard.courses)}"
+                >
+                  This semester does not have any course yet.
+                </div>
+
+                <div
+                  class="grid gap-4 md:grid-cols-2 xl:grid-cols-3"
+                  th:if="${!#lists.isEmpty(semesterBoard.courses)}"
+                >
+                  <article
+                    th:each="courseBoard : ${semesterBoard.courses}"
+                    th:attr="data-href=@{/semesters/{id}(id=${semesterBoard.semester.id},highlightCourseId=${courseBoard.course.id})}"
+                    class="cursor-pointer overflow-hidden rounded-[24px] bg-[#f8fbff] shadow-[0_14px_28px_rgba(0,35,102,0.06)] transition hover:-translate-y-0.5 hover:bg-white hover:shadow-[0_18px_36px_rgba(0,71,166,0.12)]"
+                    role="link"
+                    tabindex="0"
+                    onclick="window.location = this.dataset.href"
+                    onkeydown="
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        window.location = this.dataset.href;
+                      }
+                    "
+                  >
+                    <div
+                      class="h-1.5 bg-gradient-to-r from-[#0047A6] via-[#4777c9] to-[#d9e6ff]"
+                    ></div>
+
+                    <div class="px-4 py-4">
+                      <div class="flex items-start justify-between gap-3">
+                        <div class="min-w-0">
+                          <p
+                            class="text-[0.64rem] font-semibold uppercase tracking-[0.2em] text-[#0047A6]"
+                          >
+                            Course
+                          </p>
+                          <h3
+                            class="mt-1.5 text-[1.04rem] font-semibold leading-snug text-stone-950"
+                            th:text="${courseBoard.course.courseCode + ' | ' + courseBoard.course.courseName}"
+                          >
+                            PR1 | Programming 1
+                          </h3>
+                        </div>
+                        <span
+                          class="inline-flex h-11 w-11 items-center justify-center rounded-[16px] bg-white text-[#0047A6] shadow-[0_8px_18px_rgba(0,35,102,0.08)]"
+                        >
+                          <span class="material-symbols-outlined text-[20px]"
+                            >menu_book</span
+                          >
+                        </span>
+                      </div>
+
+                      <div
+                        class="mt-4 inline-flex flex-wrap items-center gap-2 text-[0.73rem] font-medium text-stone-800"
+                      >
+                        <span
+                          class="rounded-full bg-white px-3 py-1.5 shadow-[0_6px_14px_rgba(0,35,102,0.06)]"
+                          th:text="${courseBoard.assignmentCount + ' assignments'}"
+                          >0 assignments</span
+                        >
+                        <span
+                          class="rounded-full bg-[#eef4ff] px-3 py-1.5 text-[#0047A6]"
+                          th:text="${courseBoard.course.weekCount + ' weeks'}"
+                          >10 weeks</span
+                        >
+                      </div>
+
+                      <div class="mt-4 flex flex-wrap items-center gap-2">
+                        <a
+                          class="inline-flex items-center gap-2 rounded-full border border-[#c5d4f1] bg-white px-4 py-2 text-sm font-semibold text-stone-950 transition hover:bg-[#E0F0FF] hover:text-[#006AFF]"
+                          th:href="@{/courses/{id}/edit(id=${courseBoard.course.id})}"
+                          onclick="event.stopPropagation()"
+                        >
+                          <span class="material-symbols-outlined text-[18px]"
+                            >edit</span
+                          >
+                          Edit
+                        </a>
+                      </div>
+                    </div>
+                  </article>
+                </div>
+              </div>
+            </div>
+          </article>
+        </section>
+      </main>
+
+      <footer th:replace="~{fragments/footer :: footer}"></footer>
+    </div>
+  </body>
+</html>

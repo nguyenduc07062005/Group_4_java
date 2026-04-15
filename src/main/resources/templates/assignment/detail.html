@@ -1,152 +1,1178 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/head :: head('Assignment Detail')}"></head>
-<body>
-<div class="app-shell">
+<head th:replace="~{fragments/head :: head(${assignment.assignmentName} + ' - Studio')}"></head>
+<body class="bg-white text-stone-950">
+<div class="min-h-screen">
     <header th:replace="~{fragments/header :: header}"></header>
 
-    <div class="page-content">
-        <div class="app-layout">
-            <aside th:replace="~{fragments/sidebar :: sidebar('assignments')}"></aside>
+    <main class="mx-auto max-w-[1680px] px-4 py-6 lg:px-6">
+        <div th:replace="~{fragments/alerts :: alerts}"></div>
 
-            <main class="content-stack">
-                <div th:replace="~{fragments/alerts :: alerts}"></div>
+        <section class="mb-6 rounded-[30px] border border-stone-200 bg-white shadow-[0_18px_40px_rgba(28,25,23,0.06)]">
+            <div class="bg-gradient-to-r from-[#214d4a] via-[#347070] to-[#607d8b] px-6 py-6 text-white lg:px-8">
+                <div class="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+                    <div class="min-w-0">
+                        <div class="mb-3 flex flex-wrap items-center gap-2 text-[0.72rem] uppercase tracking-[0.24em] text-white/70">
+                            <a class="transition hover:text-white" th:href="@{/dashboard}">Dashboard</a>
+                            <span>/</span>
+                            <a class="transition hover:text-white" th:href="@{/semesters}">Semester Board</a>
+                            <span>/</span>
+                            <a class="transition hover:text-white"
+                               th:href="@{/semesters/{id}(id=${assignment.semester.id})}"
+                               th:text="${assignment.semester.code}">SP26</a>
+                            <span>/</span>
+                            <span th:text="${assignment.course.courseCode}">CS101</span>
+                        </div>
 
-                <section class="content-card">
-                    <div class="page-header">
-                        <div>
-                            <h1 class="page-title">Assignment Detail</h1>
-                            <p class="page-subtitle" th:text="${assignment.title}">Assignment detail.</p>
+                        <div class="flex flex-wrap items-center gap-3">
+                            <h1 class="font-['Newsreader'] text-4xl font-semibold leading-none tracking-[-0.04em]"
+                                th:text="${assignment.assignmentName}">Ass1 - Variables</h1>
+                            <span class="inline-flex items-center gap-2 rounded-full bg-white/12 px-3 py-1 text-[0.76rem] font-semibold uppercase tracking-[0.18em] text-white/90"
+                                  th:text="${assignment.weeklyAssignmentType ? 'Week ' + assignment.weekNumber : assignment.assignmentType}">Week 1</span>
                         </div>
-                        <div class="page-actions">
-                            <a class="btn btn-primary" th:href="@{/assignments/{assignmentId}/problems/create(assignmentId=${assignment.id})}">Add Problem</a>
-                            <a class="btn btn-secondary" th:href="@{/semesters/{id}(id=${assignment.semesterId})}">Back to Semester</a>
-                        </div>
+
+                        <p class="mt-3 max-w-4xl text-sm leading-6 text-white/88"
+                           th:text="${assignment.course.courseCode + ' - ' + assignment.course.courseName + ' | ' + assignment.gradingMode + ' grading | ' + runtimeBlockCount + ' question(s) configured | ' + totalTestCaseCount + ' testcase(s)'}">
+                            CS101 - Computer Science | JAVA_CORE grading | 1 question(s) configured | 0 testcase(s)
+                        </p>
                     </div>
 
-                    <div class="detail-grid">
-                        <article class="info-card">
-                            <h3>Assignment Info</h3>
-                            <div class="info-list">
-                                <div class="info-row">
-                                    <span class="info-label">Assignment ID</span>
-                                    <strong th:text="${assignment.id}">1</strong>
-                                </div>
-                                <div class="info-row">
-                                    <span class="info-label">Semester</span>
-                                    <strong th:text="${assignment.semesterCode + ' - ' + assignment.semesterName}">SP25</strong>
-                                </div>
-                                <div class="info-row">
-                                    <span class="info-label">Mode</span>
-                                    <strong th:text="${assignment.gradingMode}">JAVA_CORE</strong>
-                                </div>
-                                <div class="info-row">
-                                    <span class="info-label">Total Score</span>
-                                    <strong th:text="${assignment.totalScore}">100.00</strong>
-                                </div>
-                                <div class="info-row">
-                                    <span class="info-label">Plagiarism Threshold</span>
-                                    <strong th:text="${assignment.plagiarismThreshold}">80.00</strong>
-                                </div>
-                            </div>
-                        </article>
-
-                        <article class="info-card">
-                            <h3>Setup Progress</h3>
-                            <div class="info-list">
-                                <div class="info-row">
-                                    <span class="info-label">Problems</span>
-                                    <strong th:text="${assignment.problemCount}">0</strong>
-                                </div>
-                                <div class="info-row">
-                                    <span class="info-label">Test Cases</span>
-                                    <strong th:text="${assignment.testCaseCount}">0</strong>
-                                </div>
-                            </div>
-                            <p class="helper-text" th:if="${assignment.description != null}" th:text="${assignment.description}">Description</p>
-                        </article>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <a class="inline-flex items-center gap-2 rounded-full bg-white/12 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-white/18"
+                           th:href="@{/semesters/{id}(id=${assignment.semester.id})}">
+                            <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+                            Semester
+                        </a>
+                        <form th:action="@{/assignments/{id}/delete(id=${assignment.id})}" method="post" th:if="${canDeleteAssignment}" class="m-0" onsubmit="return confirm('Delete this assignment?');">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                            <button type="submit" class="inline-flex items-center gap-2 rounded-full bg-[#FFE2D6] px-4 py-2.5 text-sm font-medium text-[#8B2E01] transition hover:bg-[#ffd6c5]">
+                                <span class="material-symbols-outlined text-[18px]">delete</span>
+                                Delete
+                            </button>
+                        </form>
                     </div>
-                </section>
+                </div>
+            </div>
 
-                <section class="table-card">
-                    <div class="page-header">
-                        <div>
-                            <h2 class="page-title">Problems</h2>
-                            <p class="page-subtitle">Each problem can immediately receive testcases from this page.</p>
-                        </div>
-                    </div>
+            <div class="grid gap-5 px-4 py-5 lg:grid-cols-[220px_minmax(0,1fr)] lg:px-6 lg:py-6">
+                <aside class="lg:sticky lg:top-24 lg:self-start">
+                    <div th:replace="~{fragments/workspace-nav :: assignmentStages(${assignment.id}, 'setup')}"></div>
+                </aside>
 
-                    <div class="empty-state" th:if="${#lists.isEmpty(problems)}">
-                        <p>No problems yet for this assignment.</p>
-                    </div>
-
-                    <table class="data-table" th:unless="${#lists.isEmpty(problems)}">
-                        <thead>
-                        <tr>
-                            <th>Order</th>
-                            <th>Title</th>
-                            <th>Score</th>
-                            <th>Input/Output</th>
-                            <th>Test Cases</th>
-                            <th>Actions</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr th:each="problem : ${problems}">
-                            <td th:text="${problem.problemOrder}">1</td>
-                            <td th:text="${problem.title}">Reverse String</td>
-                            <td th:text="${problem.maxScore}">10.00</td>
-                            <td th:text="${problem.inputMode + ' / ' + problem.outputComparisonMode}">STDIN / EXACT</td>
-                            <td th:text="${problem.testCaseCount}">0</td>
-                            <td>
-                                <div class="table-actions">
-                                    <a class="btn btn-primary" th:href="@{/problems/{problemId}/testcases/create(problemId=${problem.id})}">Add Test Case</a>
-                                </div>
-                            </td>
-                        </tr>
-                        </tbody>
-                    </table>
-                </section>
-
-                <section class="content-stack" th:unless="${#lists.isEmpty(problems)}">
-                    <section class="info-card" th:each="problem : ${problems}">
-                        <div class="page-header">
-                            <div>
-                                <h3 class="section-title" th:text="${'Problem ' + problem.problemOrder + ': ' + problem.title}">Problem</h3>
-                                <p class="page-subtitle" th:text="${problem.inputMode + ' / ' + problem.outputComparisonMode + ' - Max score ' + problem.maxScore}">Mode</p>
-                            </div>
-                            <div class="page-actions">
-                                <a class="btn btn-secondary" th:href="@{/problems/{problemId}/testcases/create(problemId=${problem.id})}">Add Test Case</a>
-                            </div>
+                <div class="min-w-0 space-y-4">
+                    <section id="setup-workspace" class="overflow-hidden rounded-[24px] border border-stone-200 bg-white shadow-[0_12px_28px_rgba(28,25,23,0.04)]">
+                        <div class="border-b border-stone-100 px-6 py-5">
+                            <h2 class="mt-1 font-['Newsreader'] text-3xl font-semibold leading-none tracking-[-0.03em] text-stone-950">Assignment Info</h2>
+                            <p class="mt-3 text-sm leading-6 text-stone-700">Set assignment-level defaults, teaching metadata, and runtime rules here. Each question below can keep its own score and IO settings once the assignment is split.</p>
                         </div>
 
-                        <div class="empty-state" th:if="${#lists.isEmpty(problem.testCases)}">
-                            <p>No testcases yet for this problem.</p>
-                        </div>
+                        <form th:action="@{/assignments/{assignmentId}/settings(assignmentId=${assignment.id})}"
+                              th:object="${assignmentForm}"
+                              method="post"
+                              enctype="multipart/form-data"
+                              class="space-y-4 px-6 py-5">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                            <input type="hidden" th:field="*{semesterId}">
+                            <input type="hidden" th:field="*{courseId}">
+                            <input type="hidden" name="problemId" th:value="${selectedProblem != null ? selectedProblem.id : ''}">
 
-                        <table class="data-table" th:unless="${#lists.isEmpty(problem.testCases)}">
-                            <thead>
-                            <tr>
-                                <th>Case</th>
-                                <th>Sample</th>
-                                <th>Input</th>
-                                <th>Expected Output</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr th:each="testCase : ${problem.testCases}">
-                                <td th:text="${testCase.caseOrder}">1</td>
-                                <td th:text="${testCase.sample ? 'Yes' : 'No'}">No</td>
-                                <td><pre class="mono-block" th:text="${testCase.inputData}">input</pre></td>
-                                <td><pre class="mono-block" th:text="${testCase.expectedOutput}">output</pre></td>
-                            </tr>
-                            </tbody>
-                        </table>
+                            <div class="rounded-[20px] bg-stone-50 px-4 py-4">
+                                <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-500">Teaching Context</p>
+                                <div class="mt-3 flex flex-wrap gap-2 text-sm font-medium text-stone-900">
+                                    <span class="rounded-full bg-white px-3 py-1.5" th:text="${assignment.semester.code}">SP26</span>
+                                    <span class="rounded-full bg-white px-3 py-1.5" th:text="${assignment.course.courseCode + ' - ' + assignment.course.courseName}">CS101 - Computer Science</span>
+                                    <span class="rounded-full bg-white px-3 py-1.5" th:text="${assignment.weekNumber != null ? 'Week ' + assignment.weekNumber : 'Custom grouping'}">Week 1</span>
+                                </div>
+                            </div>
+
+                            <label class="block rounded-[20px] bg-stone-50 px-4 py-4">
+                                <span class="mb-2 flex items-center gap-2 text-[0.76rem] font-semibold uppercase tracking-[0.18em] text-stone-500">
+                                    <span class="material-symbols-outlined text-[18px]">title</span>
+                                    Assignment Name
+                                </span>
+                                <input class="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-[#347070] focus:ring-4 focus:ring-[#347070]/10"
+                                       th:field="*{assignmentName}"
+                                       type="text"
+                                       placeholder="Ass1 - Variables">
+                                <p class="mt-2 text-xs text-stone-600">Use the real task name here. Do not use a week label such as <span class="font-semibold">Week 2</span> as the assignment name.</p>
+                                <span class="mt-2 block text-xs text-red-500" th:if="${#fields.hasErrors('assignmentName')}" th:errors="*{assignmentName}"></span>
+                            </label>
+
+                            <label class="block rounded-[20px] bg-stone-50 px-4 py-4">
+                                <span class="mb-2 flex items-center gap-2 text-[0.76rem] font-semibold uppercase tracking-[0.18em] text-stone-500">
+                                    <span class="material-symbols-outlined text-[18px]">military_tech</span>
+                                    Default Mark
+                                </span>
+                                <input class="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-[#347070] focus:ring-4 focus:ring-[#347070]/10"
+                                       th:field="*{defaultMark}"
+                                       type="number"
+                                       min="0"
+                                       step="0.01"
+                                       placeholder="100">
+                                <p class="mt-2 text-xs text-stone-600">This is the assignment-level default score. Single-question setups stay aligned here, while multi-question setups can override scores per question below.</p>
+                                <span class="mt-2 block text-xs text-red-500" th:if="${#fields.hasErrors('defaultMark')}" th:errors="*{defaultMark}"></span>
+                            </label>
+
+                            <label class="block rounded-[20px] bg-stone-50 px-4 py-4">
+                                <span class="mb-2 flex items-center gap-2 text-[0.76rem] font-semibold uppercase tracking-[0.18em] text-stone-500">
+                                    <span class="material-symbols-outlined text-[18px]">calendar_month</span>
+                                    Teaching Week
+                                </span>
+                                <input class="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-[#347070] focus:ring-4 focus:ring-[#347070]/10"
+                                       th:field="*{weekNumber}"
+                                       type="number"
+                                       min="1"
+                                       max="52"
+                                       placeholder="1">
+                                <p class="mt-2 text-xs text-stone-600">Assignments in the same week are grouped together on the semester board.</p>
+                                <span class="mt-2 block text-xs text-red-500" th:if="${#fields.hasErrors('weekNumber')}" th:errors="*{weekNumber}"></span>
+                            </label>
+
+                            <label class="block rounded-[20px] bg-stone-50 px-4 py-4">
+                                <span class="mb-2 flex items-center gap-2 text-[0.76rem] font-semibold uppercase tracking-[0.18em] text-stone-500">
+                                    <span class="material-symbols-outlined text-[18px]">category</span>
+                                    Assignment Type
+                                </span>
+                                <select class="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-[#347070] focus:ring-4 focus:ring-[#347070]/10"
+                                        th:field="*{assignmentType}">
+                                    <option value="WEEKLY">Weekly Assignment</option>
+                                    <option value="CUSTOM">Custom Assignment</option>
+                                    <option th:if="${assignment.introAssignmentType}" value="INTRO">Intro</option>
+                                    <option th:if="${assignment.defaultAssignmentType}" value="DEFAULT">Default</option>
+                                </select>
+                                <span class="mt-2 block text-xs text-red-500" th:if="${#fields.hasErrors('assignmentType')}" th:errors="*{assignmentType}"></span>
+                            </label>
+
+                            <label class="block rounded-[20px] bg-stone-50 px-4 py-4">
+                                <span class="mb-2 flex items-center gap-2 text-[0.76rem] font-semibold uppercase tracking-[0.18em] text-stone-500">
+                                    <span class="material-symbols-outlined text-[18px]">terminal</span>
+                                    Input Mode
+                                </span>
+                                <select class="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-[#347070] focus:ring-4 focus:ring-[#347070]/10"
+                                        th:field="*{inputMode}">
+                                    <option value="STDIN">Console / STDIN</option>
+                                    <option value="FILE">Read from input.txt</option>
+                                </select>
+                                <span class="mt-2 block text-xs text-red-500" th:if="${#fields.hasErrors('inputMode')}" th:errors="*{inputMode}"></span>
+                            </label>
+
+                            <label class="block rounded-[20px] bg-stone-50 px-4 py-4">
+                                <span class="mb-2 flex items-center gap-2 text-[0.76rem] font-semibold uppercase tracking-[0.18em] text-stone-500">
+                                    <span class="material-symbols-outlined text-[18px]">rule</span>
+                                    Grading Mode
+                                </span>
+                                <select class="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-[#347070] focus:ring-4 focus:ring-[#347070]/10"
+                                        th:field="*{gradingMode}">
+                                    <option value="JAVA_CORE">Java Core</option>
+                                    <option value="OOP">OOP</option>
+                                </select>
+                                <span class="mt-2 block text-xs text-red-500" th:if="${#fields.hasErrors('gradingMode')}" th:errors="*{gradingMode}"></span>
+                            </label>
+
+                            <label class="block rounded-[20px] bg-stone-50 px-4 py-4">
+                                <span class="mb-2 flex items-center gap-2 text-[0.76rem] font-semibold uppercase tracking-[0.18em] text-stone-500">
+                                    <span class="material-symbols-outlined text-[18px]">target</span>
+                                    Plagiarism Threshold
+                                </span>
+                                <input class="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-[#347070] focus:ring-4 focus:ring-[#347070]/10"
+                                       th:field="*{plagiarismThreshold}"
+                                       type="number"
+                                       min="0"
+                                       max="100">
+                                <span class="mt-2 block text-xs text-red-500" th:if="${#fields.hasErrors('plagiarismThreshold')}" th:errors="*{plagiarismThreshold}"></span>
+                            </label>
+
+                            <label class="block rounded-[20px] bg-stone-50 px-4 py-4">
+                                <span class="mb-2 flex items-center gap-2 text-[0.76rem] font-semibold uppercase tracking-[0.18em] text-stone-500">
+                                    <span class="material-symbols-outlined text-[18px]">width_normal</span>
+                                    Output Policy
+                                </span>
+                                <select class="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-[#347070] focus:ring-4 focus:ring-[#347070]/10"
+                                        th:field="*{outputNormalizationPolicy}">
+                                    <option value="STRICT">Strict</option>
+                                    <option value="TRIM_ALL">Trim All</option>
+                                    <option value="IGNORE_WHITESPACE">Ignore Whitespace</option>
+                                </select>
+                                <span class="mt-2 block text-xs text-red-500" th:if="${#fields.hasErrors('outputNormalizationPolicy')}" th:errors="*{outputNormalizationPolicy}"></span>
+                            </label>
+
+                            <div class="rounded-[20px] bg-stone-50 px-4 py-4" th:if="${assignmentForm.oopMode}">
+                                <p class="mb-3 flex items-center gap-2 text-[0.76rem] font-semibold uppercase tracking-[0.18em] text-stone-500">
+                                    <span class="material-symbols-outlined text-[18px]">balance</span>
+                                    Marking Weights
+                                </p>
+
+                                <label class="block">
+                                    <span class="mb-2 block text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-500">Logic Weight</span>
+                                    <input class="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-[#347070] focus:ring-4 focus:ring-[#347070]/10"
+                                           th:field="*{logicWeight}"
+                                           type="number"
+                                           min="0"
+                                           max="100">
+                                    <span class="mt-2 block text-xs text-red-500" th:if="${#fields.hasErrors('logicWeight')}" th:errors="*{logicWeight}"></span>
+                                </label>
+
+                                <label class="mt-4 block">
+                                    <span class="mb-2 block text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-500">OOP Weight</span>
+                                    <input class="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-[#347070] focus:ring-4 focus:ring-[#347070]/10"
+                                           th:field="*{oopWeight}"
+                                           type="number"
+                                           min="0"
+                                           max="100">
+                                    <span class="mt-2 block text-xs text-red-500" th:if="${#fields.hasErrors('oopWeight')}" th:errors="*{oopWeight}"></span>
+                                </label>
+                            </div>
+
+                            <label class="block rounded-[20px] bg-stone-50 px-4 py-4">
+                                <span class="mb-2 flex items-center gap-2 text-[0.76rem] font-semibold uppercase tracking-[0.18em] text-stone-500">
+                                    <span class="material-symbols-outlined text-[18px]">description</span>
+                                    Teacher Brief
+                                </span>
+                                <input class="w-full rounded-2xl border border-dashed border-stone-300 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition file:mr-3 file:rounded-full file:border-0 file:bg-[#347070] file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-[#214d4a]"
+                                       th:field="*{descriptionFile}"
+                                       type="file"
+                                       accept=".pdf,.md">
+                                <p class="mt-2 text-xs text-stone-600" th:text="${hasDescriptionUpload ? 'Current file: ' + assignment.descriptionFileName : 'Upload .pdf or .md brief for teachers.'}">Upload .pdf or .md brief for teachers.</p>
+                            </label>
+
+                            <label class="block rounded-[20px] bg-stone-50 px-4 py-4" th:if="${assignmentForm.oopMode}">
+                                <span class="mb-2 flex items-center gap-2 text-[0.76rem] font-semibold uppercase tracking-[0.18em] text-stone-500">
+                                    <span class="material-symbols-outlined text-[18px]">data_object</span>
+                                    OOP Rule File
+                                </span>
+                                <input class="w-full rounded-2xl border border-dashed border-stone-300 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition file:mr-3 file:rounded-full file:border-0 file:bg-stone-900 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-stone-700"
+                                       th:field="*{oopRuleConfig}"
+                                       type="file"
+                                       accept=".json">
+                                <p class="mt-2 text-xs text-stone-600" th:text="${hasOopRuleConfigUpload ? 'Current file: ' + assignment.oopRuleConfigFileName : 'Upload JSON rules used by OOP grading.'}">Upload JSON rules used by OOP grading.</p>
+                            </label>
+
+                            <div class="flex flex-wrap items-center justify-between gap-3 border-t border-stone-100 pt-5">
+                                <p class="text-sm text-stone-600">Save the assignment info first, then continue directly to testcase setup and intake.</p>
+                                <button class="inline-flex items-center gap-2 rounded-2xl bg-[#347070] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#214d4a]" type="submit">
+                                    <span class="material-symbols-outlined text-[18px]">save</span>
+                                    Save Assignment Info
+                                </button>
+                            </div>
+                        </form>
                     </section>
-                </section>
-            </main>
-        </div>
-    </div>
+                    <section id="testcase-lab" class="overflow-hidden rounded-[24px] border border-stone-200 bg-white shadow-[0_12px_28px_rgba(28,25,23,0.04)]">
+                        <div class="border-b border-stone-100 px-6 py-5">
+                            <h2 class="mt-1 font-['Newsreader'] text-3xl font-semibold leading-none tracking-[-0.03em] text-stone-950">Testcases</h2>
+                            <p class="mt-3 text-sm leading-6 text-stone-700">This assignment is already the grading question. Add testcase evidence here before any submission is uploaded.</p>
+                        </div>
+
+                        <div class="space-y-4 px-6 py-5">
+                            <section class="rounded-[20px] bg-stone-50 px-4 py-4" th:if="${selectedProblem != null}">
+                                <div class="flex flex-wrap items-start justify-between gap-3">
+                                    <div>
+                                        <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-500"
+                                           th:text="${selectedProblem.internalDefault} ? 'Runtime Defaults' : 'Selected Question'">Selected Question</p>
+                                        <h3 class="mt-1 text-lg font-semibold text-stone-950" th:text="${selectedProblem.title}">Question title</h3>
+                                        <p class="mt-2 text-sm text-stone-700"
+                                           th:text="${selectedProblem.maxScore + ' marks | ' + (selectedProblem.fileInputMode ? 'input.txt' : 'STDIN') + ' | ' + selectedProblem.outputComparisonMode}">
+                                            10 marks | STDIN | EXACT
+                                        </p>
+                                        <p class="mt-2 text-sm text-stone-600" th:if="${selectedProblem.internalDefault}">This grading question is synced automatically from the assignment info above.</p>
+                                    </div>
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <span class="rounded-full bg-white px-3 py-1.5 text-[0.72rem] font-semibold text-stone-900"
+                                              th:text="${#lists.size(selectedProblemTestCases) + ' testcase(s)'}">0 testcase(s)</span>
+                                        <a class="inline-flex items-center gap-2 rounded-full border border-stone-200 bg-white px-3 py-2 text-xs font-semibold text-stone-900 transition hover:bg-stone-100"
+                                           th:if="${!selectedProblem.internalDefault}"
+                                           th:href="@{/assignments/{assignmentId}/questions/{problemId}/edit(assignmentId=${assignment.id}, problemId=${selectedProblem.id})}">
+                                            <span class="material-symbols-outlined text-[16px]">edit</span>
+                                            Edit Question
+                                        </a>
+                                        <form th:if="${!selectedProblem.internalDefault}" th:action="@{/assignments/{assignmentId}/questions/{problemId}/delete(assignmentId=${assignment.id}, problemId=${selectedProblem.id})}" method="post" class="m-0" onsubmit="return confirm('Delete this question?');">
+                                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                            <button type="submit" class="inline-flex items-center gap-2 rounded-full bg-[#FFE2D6] px-3 py-2 text-xs font-semibold text-[#8B2E01] transition hover:bg-[#ffd6c5]">
+                                                <span class="material-symbols-outlined text-[16px]">delete</span>
+                                                Delete Question
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </section>
+
+                            <section class="rounded-[20px] bg-stone-50 px-4 py-4"
+                                     th:if="${runtimeBlocks != null and #lists.size(runtimeBlocks) > 1}">
+                                <div class="mb-4">
+                                    <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-500">Questions</p>
+                                    <h3 class="mt-1 text-lg font-semibold text-stone-950">Choose a question to configure</h3>
+                                </div>
+                                <div class="flex flex-wrap gap-2">
+                                    <a th:each="runtimeBlock : ${runtimeBlocks}"
+                                       class="inline-flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-semibold transition"
+                                       th:classappend="${selectedProblem != null and selectedProblem.id == runtimeBlock.id ? ' border-[#347070] bg-[#eef5f5] text-[#214d4a]' : ' border-stone-200 bg-white text-stone-700 hover:bg-stone-100'}"
+                                       th:href="@{/assignments/{assignmentId}(assignmentId=${assignment.id}, problemId=${runtimeBlock.id})} + '#testcase-lab'">
+                                        <span class="material-symbols-outlined text-[16px]"
+                                              th:text="${selectedProblem != null and selectedProblem.id == runtimeBlock.id ? 'radio_button_checked' : 'radio_button_unchecked'}">radio_button_unchecked</span>
+                                        <span th:text="${runtimeBlock.title}">Question title</span>
+                                    </a>
+                                </div>
+                            </section>
+
+                            <section class="rounded-[20px] bg-stone-50 px-4 py-4" th:if="${selectedProblem != null}">
+                                <div class="mb-4">
+                                    <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-500">Question Editor</p>
+                                    <h3 class="mt-1 text-lg font-semibold text-stone-950"
+                                        th:text="${editingProblemId != null ? 'Edit current question' : 'Question details'}">Question details</h3>
+                                </div>
+
+                                <form th:action="${editingProblemId != null}
+                                                    ? @{/assignments/{assignmentId}/questions/{problemId}(assignmentId=${assignment.id}, problemId=${editingProblemId})}
+                                                    : @{/assignments/{assignmentId}/questions(assignmentId=${assignment.id})}"
+                                      th:object="${problemForm}"
+                                      method="post"
+                                      class="space-y-4">
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                    <input type="hidden" th:field="*{assignmentId}">
+
+                                    <label class="block">
+                                        <span class="mb-2 block text-[0.76rem] font-semibold uppercase tracking-[0.18em] text-stone-500">Question Title</span>
+                                        <input class="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-[#347070] focus:ring-4 focus:ring-[#347070]/10"
+                                               th:field="*{title}"
+                                               type="text"
+                                               placeholder="Collections Warmup">
+                                        <span class="mt-2 block text-xs text-red-500" th:if="${#fields.hasErrors('title')}" th:errors="*{title}"></span>
+                                    </label>
+
+                                    <label class="block">
+                                        <span class="mb-2 block text-[0.76rem] font-semibold uppercase tracking-[0.18em] text-stone-500">Maximum Score</span>
+                                        <input class="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-[#347070] focus:ring-4 focus:ring-[#347070]/10"
+                                               th:field="*{maxScore}"
+                                               type="number"
+                                               min="0"
+                                               step="0.01">
+                                        <span class="mt-2 block text-xs text-red-500" th:if="${#fields.hasErrors('maxScore')}" th:errors="*{maxScore}"></span>
+                                    </label>
+
+                                    <div class="grid gap-4 md:grid-cols-2">
+                                        <label class="block">
+                                            <span class="mb-2 block text-[0.76rem] font-semibold uppercase tracking-[0.18em] text-stone-500">Input Mode</span>
+                                            <select class="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-[#347070] focus:ring-4 focus:ring-[#347070]/10"
+                                                    th:field="*{inputMode}">
+                                                <option value="STDIN">Console / STDIN</option>
+                                                <option value="FILE">Read from input.txt</option>
+                                            </select>
+                                            <span class="mt-2 block text-xs text-red-500" th:if="${#fields.hasErrors('inputMode')}" th:errors="*{inputMode}"></span>
+                                        </label>
+
+                                        <label class="block">
+                                            <span class="mb-2 block text-[0.76rem] font-semibold uppercase tracking-[0.18em] text-stone-500">Output Comparison</span>
+                                            <select class="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-[#347070] focus:ring-4 focus:ring-[#347070]/10"
+                                                    th:field="*{outputComparisonMode}">
+                                                <option value="EXACT">Exact</option>
+                                                <option value="TRIM_ALL">Trim All</option>
+                                                <option value="IGNORE_WHITESPACE">Ignore Whitespace</option>
+                                            </select>
+                                            <span class="mt-2 block text-xs text-red-500" th:if="${#fields.hasErrors('outputComparisonMode')}" th:errors="*{outputComparisonMode}"></span>
+                                        </label>
+                                    </div>
+
+                                    <div class="flex justify-end border-t border-stone-200 pt-4">
+                                        <button class="inline-flex items-center gap-2 rounded-2xl bg-[#347070] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#214d4a]" type="submit">
+                                            <span class="material-symbols-outlined text-[18px]" th:text="${editingProblemId != null ? 'edit' : 'add_circle'}">edit</span>
+                                            <span th:text="${editingProblemId != null ? 'Update Question' : 'Save Question'}">Save Question</span>
+                                        </button>
+                                    </div>
+                                </form>
+                            </section>
+
+                            <section class="rounded-[20px] bg-stone-50 px-4 py-4" th:if="${selectedProblem != null and selectedProblem.internalDefault}">
+                                <p class="text-sm text-stone-600">This default runtime question is synced from assignment info above and is not edited separately here.</p>
+                            </section>
+
+                            <section class="rounded-[20px] bg-stone-50 px-4 py-4" th:if="${selectedProblem == null}">
+                                <div class="mb-4">
+                                    <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-500">Question Setup</p>
+                                    <h3 class="mt-1 text-lg font-semibold text-stone-950">Create the first question</h3>
+                                </div>
+
+                                <form th:action="@{/assignments/{assignmentId}/questions(assignmentId=${assignment.id})}"
+                                      th:object="${problemForm}"
+                                      method="post"
+                                      class="space-y-4">
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                    <input type="hidden" th:field="*{assignmentId}">
+
+                                    <label class="block">
+                                        <span class="mb-2 block text-[0.76rem] font-semibold uppercase tracking-[0.18em] text-stone-500">Question Title</span>
+                                        <input class="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-[#347070] focus:ring-4 focus:ring-[#347070]/10"
+                                               th:field="*{title}"
+                                               type="text"
+                                               placeholder="Collections Warmup">
+                                        <span class="mt-2 block text-xs text-red-500" th:if="${#fields.hasErrors('title')}" th:errors="*{title}"></span>
+                                    </label>
+
+                                    <label class="block">
+                                        <span class="mb-2 block text-[0.76rem] font-semibold uppercase tracking-[0.18em] text-stone-500">Maximum Score</span>
+                                        <input class="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-[#347070] focus:ring-4 focus:ring-[#347070]/10"
+                                               th:field="*{maxScore}"
+                                               type="number"
+                                               min="0"
+                                               step="0.01">
+                                        <span class="mt-2 block text-xs text-red-500" th:if="${#fields.hasErrors('maxScore')}" th:errors="*{maxScore}"></span>
+                                    </label>
+
+                                    <div class="grid gap-4 md:grid-cols-2">
+                                        <label class="block">
+                                            <span class="mb-2 block text-[0.76rem] font-semibold uppercase tracking-[0.18em] text-stone-500">Input Mode</span>
+                                            <select class="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-[#347070] focus:ring-4 focus:ring-[#347070]/10"
+                                                    th:field="*{inputMode}">
+                                                <option value="STDIN">Console / STDIN</option>
+                                                <option value="FILE">Read from input.txt</option>
+                                            </select>
+                                            <span class="mt-2 block text-xs text-red-500" th:if="${#fields.hasErrors('inputMode')}" th:errors="*{inputMode}"></span>
+                                        </label>
+
+                                        <label class="block">
+                                            <span class="mb-2 block text-[0.76rem] font-semibold uppercase tracking-[0.18em] text-stone-500">Output Comparison</span>
+                                            <select class="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-[#347070] focus:ring-4 focus:ring-[#347070]/10"
+                                                    th:field="*{outputComparisonMode}">
+                                                <option value="EXACT">Exact</option>
+                                                <option value="TRIM_ALL">Trim All</option>
+                                                <option value="IGNORE_WHITESPACE">Ignore Whitespace</option>
+                                            </select>
+                                            <span class="mt-2 block text-xs text-red-500" th:if="${#fields.hasErrors('outputComparisonMode')}" th:errors="*{outputComparisonMode}"></span>
+                                        </label>
+                                    </div>
+
+                                    <div class="flex justify-end border-t border-stone-200 pt-4">
+                                        <button class="inline-flex items-center gap-2 rounded-2xl bg-[#347070] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#214d4a]" type="submit">
+                                            <span class="material-symbols-outlined text-[18px]">add_circle</span>
+                                            Save Question
+                                        </button>
+                                    </div>
+                                </form>
+                            </section>
+
+                            <section class="rounded-[20px] bg-stone-50 px-4 py-4" th:if="${selectedProblem != null}">
+                                <div class="mb-4">
+                                    <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-500">Manual Testcase</p>
+                                    <h3 class="mt-1 text-lg font-semibold text-stone-950" th:text="${editingTestCaseId != null ? 'Edit testcase' : 'Add a testcase inline'}">Add a testcase inline</h3>
+                                </div>
+
+                                <form th:action="${editingTestCaseId != null}
+                                                    ? @{/assignments/{assignmentId}/questions/{problemId}/testcases/{testCaseId}(assignmentId=${assignment.id}, problemId=${selectedProblem.id}, testCaseId=${editingTestCaseId})}
+                                                    : @{/assignments/{assignmentId}/questions/{problemId}/testcases(assignmentId=${assignment.id}, problemId=${selectedProblem.id})}"
+                                      th:object="${testCaseForm}"
+                                      method="post"
+                                      class="space-y-4">
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                    <input type="hidden" th:field="*{problemId}">
+
+                                    <label class="block">
+                                        <span class="mb-2 block text-[0.76rem] font-semibold uppercase tracking-[0.18em] text-stone-500">Weight</span>
+                                        <input class="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-[#347070] focus:ring-4 focus:ring-[#347070]/10"
+                                               th:field="*{weight}"
+                                               type="number"
+                                               min="0.01"
+                                               step="0.01">
+                                        <span class="mt-2 block text-xs text-red-500" th:if="${#fields.hasErrors('weight')}" th:errors="*{weight}"></span>
+                                    </label>
+
+                                    <label class="block">
+                                        <span class="mb-2 block text-[0.76rem] font-semibold uppercase tracking-[0.18em] text-stone-500">Standard Input</span>
+                                        <textarea class="min-h-[140px] w-full rounded-2xl border border-stone-200 bg-stone-950 px-4 py-3 text-sm text-blue-300 outline-none transition focus:border-[#347070] focus:ring-4 focus:ring-[#347070]/10"
+                                                  th:field="*{inputData}"
+                                                  rows="6"
+                                                  placeholder="Optional input for this testcase"></textarea>
+                                    </label>
+
+                                    <label class="block">
+                                        <span class="mb-2 block text-[0.76rem] font-semibold uppercase tracking-[0.18em] text-stone-500">Expected Output</span>
+                                        <textarea class="min-h-[140px] w-full rounded-2xl border border-stone-200 bg-stone-950 px-4 py-3 text-sm text-amber-300 outline-none transition focus:border-[#347070] focus:ring-4 focus:ring-[#347070]/10"
+                                                  th:field="*{expectedOutput}"
+                                                  rows="6"
+                                                  placeholder="Required output"></textarea>
+                                        <span class="mt-2 block text-xs text-red-500" th:if="${#fields.hasErrors('expectedOutput')}" th:errors="*{expectedOutput}"></span>
+                                    </label>
+
+                                    <div class="flex justify-end border-t border-stone-200 pt-4">
+                                        <button class="inline-flex items-center gap-2 rounded-2xl bg-[#347070] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#214d4a]" type="submit">
+                                            <span class="material-symbols-outlined text-[18px]" th:text="${editingTestCaseId != null ? 'edit' : 'playlist_add'}">playlist_add</span>
+                                            <span th:text="${editingTestCaseId != null ? 'Update Testcase' : 'Save Testcase'}">Save Testcase</span>
+                                        </button>
+                                    </div>
+                                </form>
+                            </section>
+
+                            <section class="rounded-[20px] bg-stone-50 px-4 py-4" th:if="${selectedProblem != null}">
+                                <div class="mb-4">
+                                    <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-500">Bulk Import</p>
+                                    <h3 class="mt-1 text-lg font-semibold text-stone-950">Import ZIP or CSV testcase packs</h3>
+                                </div>
+
+                                <form th:action="@{/assignments/{assignmentId}/questions/{problemId}/testcases/import(assignmentId=${assignment.id}, problemId=${selectedProblem.id})}"
+                                      th:object="${testCaseImportForm}"
+                                      method="post"
+                                      enctype="multipart/form-data"
+                                      class="space-y-4">
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                    <input type="hidden" th:field="*{problemId}">
+
+                                    <label class="block">
+                                        <span class="mb-2 block text-[0.76rem] font-semibold uppercase tracking-[0.18em] text-stone-500">Import File</span>
+                                        <input class="w-full rounded-2xl border border-dashed border-stone-300 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition file:mr-3 file:rounded-full file:border-0 file:bg-stone-900 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-stone-700"
+                                               th:field="*{importFile}"
+                                               type="file"
+                                               accept=".zip,.csv">
+                                    </label>
+
+                                    <p class="rounded-[18px] bg-white px-4 py-4 text-sm leading-6 text-stone-600">ZIP import pairs <span class="font-semibold text-stone-900">.in/.out</span> files. CSV import uses one row per testcase.</p>
+
+                                    <div class="flex justify-end border-t border-stone-200 pt-4">
+                                        <button class="inline-flex items-center gap-2 rounded-2xl bg-stone-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-stone-800" type="submit">
+                                            <span class="material-symbols-outlined text-[18px]">upload_file</span>
+                                            Parse And Preview
+                                        </button>
+                                    </div>
+                                </form>
+
+                                <div class="mt-4 rounded-[18px] border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" th:if="${importErrorMessage != null}" th:text="${importErrorMessage}">
+                                    Import error
+                                </div>
+                            </section>
+
+                            <section class="rounded-[20px] bg-stone-50 px-4 py-4"
+                                     th:if="${selectedProblem != null and testCaseImportPreviewForm.rows != null and !#lists.isEmpty(testCaseImportPreviewForm.rows)}">
+                                <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+                                    <div>
+                                        <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-500">Preview Before Save</p>
+                                        <h3 class="mt-1 text-lg font-semibold text-stone-950">Review imported testcase rows</h3>
+                                    </div>
+                                    <span class="rounded-full bg-white px-3 py-1.5 text-[0.72rem] font-semibold text-stone-900" th:text="${#lists.size(testCaseImportPreviewForm.rows) + ' row(s)'}">0 row(s)</span>
+                                </div>
+
+                                <form th:action="@{/assignments/{assignmentId}/questions/{problemId}/testcases/import/save(assignmentId=${assignment.id}, problemId=${selectedProblem.id})}"
+                                      th:object="${testCaseImportPreviewForm}"
+                                      method="post"
+                                      class="space-y-4">
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                    <input type="hidden" th:field="*{problemId}">
+
+                                    <div class="rounded-[18px] border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+                                         th:if="${#fields.hasErrors('*')}">
+                                        <p class="font-semibold">Review the imported rows before saving.</p>
+                                        <ul class="mt-2 list-disc space-y-1 pl-5">
+                                            <li th:each="error : ${#fields.errors('*')}" th:text="${error}">Validation error</li>
+                                        </ul>
+                                    </div>
+
+                                    <div class="overflow-x-auto rounded-2xl border border-stone-200 bg-white">
+                                        <table class="min-w-full divide-y divide-stone-100 text-left">
+                                            <thead class="bg-stone-50">
+                                            <tr>
+                                                <th class="px-4 py-3 text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-500">Source</th>
+                                                <th class="px-4 py-3 text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-500">Weight</th>
+                                                <th class="px-4 py-3 text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-500">Input</th>
+                                                <th class="px-4 py-3 text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-500">Expected Output</th>
+                                                <th class="px-4 py-3 text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-500">Action</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody class="divide-y divide-stone-100">
+                                            <tr th:each="row, rowStat : *{rows}">
+                                                <td class="px-4 py-4 align-top">
+                                                    <span class="text-sm font-medium text-stone-900" th:text="${row.sourceName}">case01</span>
+                                                    <input type="hidden" th:field="*{rows[__${rowStat.index}__].sourceName}">
+                                                </td>
+                                                <td class="px-4 py-4 align-top">
+                                                    <input class="w-24 rounded-xl border border-stone-200 bg-stone-50 px-3 py-2 text-sm text-stone-950 outline-none transition focus:border-[#347070] focus:bg-white focus:ring-4 focus:ring-[#347070]/10"
+                                                           th:field="*{rows[__${rowStat.index}__].weight}"
+                                                           type="number"
+                                                           min="0.01"
+                                                           step="0.01">
+                                                </td>
+                                                <td class="px-4 py-4 align-top">
+                                                    <textarea class="min-h-[110px] w-full min-w-[220px] rounded-xl border border-stone-200 bg-stone-950 px-3 py-2 text-sm text-blue-300 outline-none transition focus:border-[#347070] focus:ring-4 focus:ring-[#347070]/10"
+                                                              th:field="*{rows[__${rowStat.index}__].inputData}"
+                                                              rows="4"></textarea>
+                                                </td>
+                                                <td class="px-4 py-4 align-top">
+                                                    <textarea class="min-h-[110px] w-full min-w-[220px] rounded-xl border border-stone-200 bg-stone-950 px-3 py-2 text-sm text-amber-300 outline-none transition focus:border-[#347070] focus:ring-4 focus:ring-[#347070]/10"
+                                                              th:field="*{rows[__${rowStat.index}__].expectedOutput}"
+                                                              rows="4"></textarea>
+                                                </td>
+                                                <td class="px-4 py-4 align-top">
+                                                    <button class="inline-flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-600 transition hover:bg-red-100"
+                                                            type="submit"
+                                                            th:formaction="@{/assignments/{assignmentId}/questions/{problemId}/testcases/import/preview(assignmentId=${assignment.id}, problemId=${selectedProblem.id})}"
+                                                            name="removeIndex"
+                                                            th:value="${rowStat.index}">
+                                                        <span class="material-symbols-outlined text-[16px]">close</span>
+                                                        Remove
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <div class="flex justify-end border-t border-stone-200 pt-4">
+                                        <button class="inline-flex items-center gap-2 rounded-2xl bg-[#347070] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#214d4a]" type="submit">
+                                            <span class="material-symbols-outlined text-[18px]">library_add</span>
+                                            Save Imported Testcases
+                                        </button>
+                                    </div>
+                                </form>
+                            </section>
+
+                            <section class="rounded-[20px] bg-stone-50 px-4 py-4"
+                                     th:if="${selectedProblem != null}"
+                                     x-data="assignmentWorkspaceTestcaseLab()"
+                                     th:attr="data-problem-id=${selectedProblem.id},
+                                               data-testcase-url-base=@{/assignments/{assignmentId}/questions/{problemId}/testcases(assignmentId=${assignment.id}, problemId=${selectedProblem.id})},
+                                               data-csrf-parameter-name=${_csrf.parameterName},
+                                               data-csrf-token=${_csrf.token}">
+                                <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+                                    <div>
+                                        <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-500">Existing Testcases</p>
+                                        <h3 class="mt-1 text-lg font-semibold text-stone-950">Current evidence for this question</h3>
+                                    </div>
+                                    <span class="rounded-full bg-white px-3 py-1.5 text-[0.72rem] font-semibold text-stone-900"
+                                          data-testcase-count
+                                          th:text="${#lists.size(selectedProblemTestCases) + ' testcase(s)'}">0 testcase(s)</span>
+                                </div>
+
+                                <div class="rounded-[18px] border border-dashed border-stone-300 bg-white px-4 py-10 text-center text-sm text-stone-600"
+                                     th:if="${#lists.isEmpty(selectedProblemTestCases)}">
+                                    No testcase saved for this question yet.
+                                </div>
+
+                                <div class="mb-4 space-y-3">
+                                    <div x-cloak x-show="inlineMessage" class="rounded-[18px] border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700" x-text="inlineMessage"></div>
+                                    <div x-cloak x-show="inlineError" class="rounded-[18px] border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" x-text="inlineError"></div>
+                                </div>
+
+                                <div class="hidden rounded-[18px] border border-dashed border-stone-300 bg-white px-4 py-10 text-center text-sm text-stone-600"
+                                     data-inline-empty-state
+                                     th:if="${!#lists.isEmpty(selectedProblemTestCases)}">
+                                    No testcase saved for this question yet.
+                                </div>
+
+                                <div class="overflow-x-auto rounded-2xl border border-stone-200 bg-white"
+                                     data-inline-table
+                                     th:if="${!#lists.isEmpty(selectedProblemTestCases)}">
+                                    <table class="min-w-full divide-y divide-stone-100 text-left">
+                                        <thead class="bg-stone-50">
+                                        <tr>
+                                            <th class="px-4 py-3 text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-500">Case</th>
+                                            <th class="px-4 py-3 text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-500">Weight</th>
+                                            <th class="px-4 py-3 text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-500">Input Preview</th>
+                                            <th class="px-4 py-3 text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-500">Expected Output</th>
+                                            <th class="px-4 py-3 text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-500">Action</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-stone-100">
+                                        <tr th:each="testCase : ${selectedProblemTestCases}"
+                                            data-testcase-row="true"
+                                            th:attr="data-testcase-id=${testCase.id},
+                                                     data-case-order=${testCase.caseOrder},
+                                                     data-weight=${testCase.weight},
+                                                     data-input-data=${testCase.inputData != null ? testCase.inputData : ''},
+                                                     data-input-preview=${testCase.inputData != null ? #strings.abbreviate(testCase.inputData, 80) : '(empty)'},
+                                                     data-expected-output=${testCase.expectedOutput},
+                                                     data-expected-output-preview=${#strings.abbreviate(testCase.expectedOutput, 80)}">
+                                            <td class="px-4 py-4 align-top text-sm font-medium text-stone-900">
+                                                <div data-field="caseLabel" th:text="${'Case ' + testCase.caseOrder}">Case 1</div>
+                                            </td>
+                                            <td class="px-4 py-4 align-top text-sm text-stone-700">
+                                                <span data-field="weight"
+                                                      th:attr="x-show=|editingTestCaseId !== ${testCase.id}|"
+                                                      th:text="${testCase.weight}">1.00</span>
+                                                <input x-cloak
+                                                       th:attr="x-show=|editingTestCaseId === ${testCase.id}|"
+                                                       x-model="editDraft.weight"
+                                                       x-bind:disabled="busy"
+                                                       class="w-24 rounded-xl border border-stone-200 bg-stone-50 px-3 py-2 text-sm text-stone-950 outline-none transition focus:border-[#347070] focus:bg-white focus:ring-4 focus:ring-[#347070]/10"
+                                                       type="number"
+                                                       min="0.01"
+                                                       step="0.01">
+                                            </td>
+                                            <td class="px-4 py-4 align-top text-sm text-stone-600">
+                                                <p class="whitespace-pre-wrap break-words"
+                                                   data-field="inputPreview"
+                                                   th:attr="x-show=|editingTestCaseId !== ${testCase.id}|"
+                                                   th:text="${testCase.inputData != null ? #strings.abbreviate(testCase.inputData, 80) : '(empty)'}">(empty)</p>
+                                                <textarea x-cloak
+                                                          th:attr="x-show=|editingTestCaseId === ${testCase.id}|"
+                                                          x-model="editDraft.inputData"
+                                                          x-bind:disabled="busy"
+                                                          class="min-h-[110px] w-full min-w-[220px] rounded-xl border border-stone-200 bg-stone-950 px-3 py-2 text-sm text-blue-300 outline-none transition focus:border-[#347070] focus:ring-4 focus:ring-[#347070]/10"
+                                                          rows="4"></textarea>
+                                            </td>
+                                            <td class="px-4 py-4 align-top text-sm text-stone-600">
+                                                <p class="whitespace-pre-wrap break-words"
+                                                   data-field="expectedOutputPreview"
+                                                   th:attr="x-show=|editingTestCaseId !== ${testCase.id}|"
+                                                   th:text="${#strings.abbreviate(testCase.expectedOutput, 80)}">3</p>
+                                                <textarea x-cloak
+                                                          th:attr="x-show=|editingTestCaseId === ${testCase.id}|"
+                                                          x-model="editDraft.expectedOutput"
+                                                          x-bind:disabled="busy"
+                                                          class="min-h-[110px] w-full min-w-[220px] rounded-xl border border-stone-200 bg-stone-950 px-3 py-2 text-sm text-amber-300 outline-none transition focus:border-[#347070] focus:ring-4 focus:ring-[#347070]/10"
+                                                          rows="4"></textarea>
+                                            </td>
+                                            <td class="px-4 py-4 align-top text-sm">
+                                                <div class="flex flex-wrap gap-2" x-show="!enhanced">
+                                                    <a class="inline-flex items-center gap-2 rounded-xl border border-stone-200 bg-white px-3 py-2 text-xs font-semibold text-stone-900 transition hover:bg-stone-100"
+                                                       th:href="@{/assignments/{assignmentId}/questions/{problemId}/testcases/{testCaseId}/edit(assignmentId=${assignment.id}, problemId=${selectedProblem.id}, testCaseId=${testCase.id})}">
+                                                        <span class="material-symbols-outlined text-[16px]">edit</span>
+                                                        Edit
+                                                    </a>
+                                                    <form th:action="@{/assignments/{assignmentId}/questions/{problemId}/testcases/{testCaseId}/delete(assignmentId=${assignment.id}, problemId=${selectedProblem.id}, testCaseId=${testCase.id})}" method="post" class="m-0" onsubmit="return confirm('Delete this testcase?');">
+                                                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                                        <button type="submit" class="inline-flex items-center gap-2 rounded-xl bg-[#FFE2D6] px-3 py-2 text-xs font-semibold text-[#8B2E01] transition hover:bg-[#ffd6c5]">
+                                                            <span class="material-symbols-outlined text-[16px]">delete</span>
+                                                            Delete
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                                <div class="flex flex-wrap gap-2" x-cloak th:attr="x-show=|enhanced && editingTestCaseId !== ${testCase.id}|">
+                                                    <button type="button"
+                                                            th:attr="data-testcase-id=${testCase.id}"
+                                                            x-bind:disabled="busy"
+                                                            x-on:click.prevent="beginEdit(Number($el.dataset.testcaseId))"
+                                                            class="inline-flex items-center gap-2 rounded-xl border border-stone-200 bg-white px-3 py-2 text-xs font-semibold text-stone-900 transition hover:bg-stone-100 disabled:cursor-not-allowed disabled:opacity-60">
+                                                        <span class="material-symbols-outlined text-[16px]">edit</span>
+                                                        Edit Inline
+                                                    </button>
+                                                    <button type="button"
+                                                            th:attr="data-testcase-id=${testCase.id}"
+                                                            x-bind:disabled="busy"
+                                                            x-on:click.prevent="deleteRow(Number($el.dataset.testcaseId))"
+                                                            class="inline-flex items-center gap-2 rounded-xl bg-[#FFE2D6] px-3 py-2 text-xs font-semibold text-[#8B2E01] transition hover:bg-[#ffd6c5] disabled:cursor-not-allowed disabled:opacity-60">
+                                                        <span class="material-symbols-outlined text-[16px]">delete</span>
+                                                        Delete
+                                                    </button>
+                                                </div>
+                                                <div class="flex flex-wrap gap-2" x-cloak th:attr="x-show=|enhanced && editingTestCaseId === ${testCase.id}|">
+                                                    <button type="button"
+                                                            x-bind:disabled="busy"
+                                                            x-on:click.prevent="cancelEdit()"
+                                                            class="inline-flex items-center gap-2 rounded-xl border border-stone-200 bg-white px-3 py-2 text-xs font-semibold text-stone-900 transition hover:bg-stone-100 disabled:cursor-not-allowed disabled:opacity-60">
+                                                        <span class="material-symbols-outlined text-[16px]">close</span>
+                                                        Cancel
+                                                    </button>
+                                                    <button type="button"
+                                                            th:attr="data-testcase-id=${testCase.id}"
+                                                            x-bind:disabled="busy"
+                                                            x-on:click.prevent="saveEdit(Number($el.dataset.testcaseId))"
+                                                            class="inline-flex items-center gap-2 rounded-xl bg-[#347070] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#214d4a] disabled:cursor-not-allowed disabled:opacity-60">
+                                                        <span class="material-symbols-outlined text-[16px]">save</span>
+                                                        <span x-text="busy ? 'Saving...' : 'Save'">Save</span>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </section>
+
+                            <section class="rounded-[20px] bg-stone-50 px-4 py-4" th:if="${selectedProblem == null}">
+                                <div class="mb-4">
+                                    <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-500">Manual Testcase</p>
+                                    <h3 class="mt-1 text-lg font-semibold text-stone-950">Add a testcase inline</h3>
+                                </div>
+                                <p class="text-sm text-stone-600">Select or create a question first, then add testcase evidence here.</p>
+                            </section>
+
+                            <section class="rounded-[20px] bg-stone-50 px-4 py-4" th:if="${selectedProblem == null}">
+                                <div class="mb-4">
+                                    <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-500">Bulk Import</p>
+                                    <h3 class="mt-1 text-lg font-semibold text-stone-950">Import ZIP or CSV testcase packs</h3>
+                                </div>
+                                <p class="text-sm text-stone-600">Save and select a question first, then use import.</p>
+                            </section>
+
+                            <section class="rounded-[20px] bg-stone-50 px-4 py-4" th:if="${selectedProblem == null}">
+                                <div class="mb-4">
+                                    <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-500">Existing Testcases</p>
+                                    <h3 class="mt-1 text-lg font-semibold text-stone-950">Current evidence for this question</h3>
+                                </div>
+                                <p class="text-sm text-stone-600">No question is selected yet.</p>
+                            </section>
+                        </div>
+                    </section>
+
+                    <section id="intake-readiness" class="overflow-hidden rounded-[24px] border border-stone-200 bg-white shadow-[0_12px_28px_rgba(28,25,23,0.04)]">
+                        <div class="border-b border-stone-100 px-6 py-5">
+                            <h2 class="mt-1 font-['Newsreader'] text-3xl font-semibold leading-none tracking-[-0.03em] text-stone-950">Intake Readiness</h2>
+                            <p class="mt-3 text-sm leading-6 text-stone-700">Only move here after assignment info and testcase coverage are ready.</p>
+                        </div>
+
+                        <div class="space-y-4 px-6 py-5">
+                            <section class="rounded-[20px] bg-stone-50 px-4 py-4">
+                                <div class="mb-4">
+                                    <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-500">Current Workspace</p>
+                                    <h3 class="mt-1 text-lg font-semibold text-stone-950">Setup Status</h3>
+                                </div>
+
+                                <div class="grid gap-3 sm:grid-cols-3">
+                                    <div class="rounded-[18px] bg-white px-4 py-4">
+                                        <p class="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-stone-500">Questions</p>
+                                        <p class="mt-2 text-2xl font-bold text-stone-950" th:text="${runtimeBlockCount}">1</p>
+                                    </div>
+                                    <div class="rounded-[18px] bg-white px-4 py-4">
+                                        <p class="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-stone-500">Testcases</p>
+                                        <p class="mt-2 text-2xl font-bold text-stone-950" th:text="${totalTestCaseCount}">0</p>
+                                    </div>
+                                    <div class="rounded-[18px] bg-white px-4 py-4">
+                                        <p class="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-stone-500">Submissions</p>
+                                        <p class="mt-2 text-2xl font-bold text-stone-950" th:text="${submissionCount}">0</p>
+                                    </div>
+                                </div>
+
+                                <div class="mt-4 rounded-[18px] border border-stone-200 bg-white px-4 py-4">
+                                    <div class="flex items-center gap-2 text-sm font-medium"
+                                          th:classappend="${allRuntimeBlocksHaveTestCases ? ' text-[#347070]' : ' text-[#b35c37]'}">
+                                        <span class="material-symbols-outlined text-[18px]" th:text="${allRuntimeBlocksHaveTestCases} ? 'check_circle' : 'schedule'">schedule</span>
+                                        <span th:text="${allRuntimeBlocksHaveTestCases ? 'Ready for intake' : 'Still needs testcase coverage'}">Still needs testcase coverage</span>
+                                    </div>
+                                    <p class="mt-2 text-sm text-stone-600"
+                                       th:text="${allRuntimeBlocksHaveTestCases ? 'All configured questions have testcase coverage.' : 'Add testcase coverage for each configured question before intake.'}">
+                                        Add testcase coverage for each configured question before intake.
+                                    </p>
+                                </div>
+                            </section>
+
+                            <section class="rounded-[20px] bg-stone-50 px-4 py-4">
+                                <div class="mb-4">
+                                    <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-500">Next Actions</p>
+                                    <h3 class="mt-1 text-lg font-semibold text-stone-950">Continue after setup</h3>
+                                </div>
+
+                                <div class="space-y-3">
+                                    <a class="flex items-center justify-between rounded-[18px] border border-stone-200 bg-white px-4 py-3 text-sm font-medium text-stone-700 transition hover:border-[#347070] hover:bg-[#eef5f5] hover:text-[#214d4a]"
+                                       th:href="@{/assignments/{assignmentId}/submissions/upload(assignmentId=${assignment.id})}">
+                                        <span class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px]">upload_file</span> Submission Intake</span>
+                                        <span class="text-xs" th:text="${allRuntimeBlocksHaveTestCases ? 'Open' : 'Locked'}">Locked</span>
+                                    </a>
+                                    <a class="flex items-center justify-between rounded-[18px] border border-stone-200 bg-white px-4 py-3 text-sm font-medium text-stone-700 transition hover:border-[#347070] hover:bg-[#eef5f5] hover:text-[#214d4a]"
+                                       th:href="@{/assignments/{assignmentId}/plagiarism(assignmentId=${assignment.id})}">
+                                        <span class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px]">policy</span> Plagiarism Review</span>
+                                        <span class="text-xs" th:text="${canRunPlagiarism ? 'Ready' : 'Waiting'}">Waiting</span>
+                                    </a>
+                                    <a class="flex items-center justify-between rounded-[18px] border border-stone-200 bg-white px-4 py-3 text-sm font-medium text-stone-700 transition hover:border-[#347070] hover:bg-[#eef5f5] hover:text-[#214d4a]"
+                                       th:href="@{/assignments/{assignmentId}/grading(assignmentId=${assignment.id})}">
+                                        <span class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px]">play_circle</span> Grading Workspace</span>
+                                        <span class="text-xs" th:text="${canOpenBatchPrecheck ? 'Open' : 'Blocked'}">Blocked</span>
+                                    </a>
+                                    <a class="flex items-center justify-between rounded-[18px] border border-stone-200 bg-white px-4 py-3 text-sm font-medium text-stone-700 transition hover:border-[#347070] hover:bg-[#eef5f5] hover:text-[#214d4a]"
+                                       th:href="@{/assignments/{assignmentId}/grading(assignmentId=${assignment.id})}">
+                                        <span class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px]">monitoring</span> Results And Export</span>
+                                        <span class="text-xs" th:text="${latestBatch != null ? latestBatch.status : 'No batch'}">No batch</span>
+                                    </a>
+                                </div>
+                            </section>
+
+                            <section class="rounded-[20px] bg-stone-50 px-4 py-4">
+                                <div class="mb-4">
+                                    <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-500">Stored Files</p>
+                                    <h3 class="mt-1 text-lg font-semibold text-stone-950">Teacher Resources</h3>
+                                </div>
+
+                                <div class="space-y-3">
+                                    <div class="rounded-[18px] bg-white px-4 py-4">
+                                        <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-500">Teacher Brief</p>
+                                        <p class="mt-2 text-sm font-medium text-stone-900" th:text="${hasDescriptionUpload ? assignment.descriptionFileName : 'Not uploaded'}">Not uploaded</p>
+                                        <a class="mt-3 inline-flex items-center gap-2 text-sm font-medium text-[#347070] hover:text-[#214d4a]" th:if="${hasDescriptionUpload}" th:href="@{/assignments/{id}/description-file(id=${assignment.id})}">
+                                            <span class="material-symbols-outlined text-[18px]">download</span>
+                                            Download
+                                        </a>
+                                    </div>
+
+                        <div class="rounded-[18px] bg-white px-4 py-4" th:if="${assignment.oopMode}">
+                                        <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-500">OOP Rules</p>
+                                        <p class="mt-2 text-sm font-medium text-stone-900" th:text="${hasOopRuleConfigUpload ? assignment.oopRuleConfigFileName : 'Not uploaded'}">Not uploaded</p>
+                                        <a class="mt-3 inline-flex items-center gap-2 text-sm font-medium text-[#347070] hover:text-[#214d4a]" th:if="${hasOopRuleConfigUpload}" th:href="@{/assignments/{id}/oop-rule-config(id=${assignment.id})}">
+                                            <span class="material-symbols-outlined text-[18px]">download</span>
+                                            Download
+                                        </a>
+                                    </div>
+                                </div>
+                            </section>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        function assignmentWorkspaceTestcaseLab(config = {}) {
+            return {
+                config: { ...config },
+                rows: [],
+                editingTestCaseId: null,
+                editDraft: { weight: "", inputData: "", expectedOutput: "" },
+                inlineMessage: "",
+                inlineError: "",
+                busy: false,
+                enhanced: false,
+
+                init() {
+                    this.config = {
+                        problemId: this.$el.dataset.problemId || this.config.problemId || "",
+                        testcaseUrlBase: this.$el.dataset.testcaseUrlBase || this.config.testcaseUrlBase || "",
+                        csrfParameterName: this.$el.dataset.csrfParameterName || this.config.csrfParameterName || "_csrf",
+                        csrfToken: this.$el.dataset.csrfToken || this.config.csrfToken || ""
+                    };
+                    this.rows = this.readRowsFromDom();
+                    this.enhanced = true;
+                    this.updateCountBadges();
+                    this.syncInlineEmptyState();
+                },
+
+                readRowsFromDom() {
+                    const self = this;
+                    return Array.from(this.$el.querySelectorAll("[data-testcase-row]")).map((element) => self.rowFromElement(element));
+                },
+
+                rowFromElement(element) {
+                    return {
+                        id: Number(element.dataset.testcaseId),
+                        caseOrder: Number(element.dataset.caseOrder),
+                        weight: element.dataset.weight || "",
+                        inputData: element.dataset.inputData || "",
+                        inputPreview: element.dataset.inputPreview || "(empty)",
+                        expectedOutput: element.dataset.expectedOutput || "",
+                        expectedOutputPreview: element.dataset.expectedOutputPreview || ""
+                    };
+                },
+
+                rowById(id) {
+                    return this.rows.find((row) => row.id === id) || null;
+                },
+
+                rowElement(id) {
+                    return this.$el.querySelector('[data-testcase-id="' + id + '"]');
+                },
+
+                emptyDraft() {
+                    return { weight: "", inputData: "", expectedOutput: "" };
+                },
+
+                beginEdit(id) {
+                    if (this.busy) {
+                        return;
+                    }
+                    const row = this.rowById(id);
+                    if (!row) {
+                        return;
+                    }
+                    this.editingTestCaseId = id;
+                    this.editDraft = {
+                        weight: row.weight,
+                        inputData: row.inputData,
+                        expectedOutput: row.expectedOutput
+                    };
+                    this.inlineMessage = "";
+                    this.inlineError = "";
+                },
+
+                cancelEdit() {
+                    if (this.busy) {
+                        return;
+                    }
+                    this.editingTestCaseId = null;
+                    this.editDraft = this.emptyDraft();
+                    this.inlineError = "";
+                },
+
+                async saveEdit(id) {
+                    if (this.busy) {
+                        return;
+                    }
+                    const row = this.rowById(id);
+                    if (!row) {
+                        return;
+                    }
+
+                    this.busy = true;
+                    this.inlineMessage = "";
+                    this.inlineError = "";
+
+                    const body = new URLSearchParams();
+                    body.set("problemId", String(this.config.problemId));
+                    body.set("weight", this.editDraft.weight ?? "");
+                    body.set("inputData", this.editDraft.inputData ?? "");
+                    body.set("expectedOutput", this.editDraft.expectedOutput ?? "");
+                    body.set(this.config.csrfParameterName, this.config.csrfToken);
+
+                    try {
+                        const response = await fetch(this.buildUpdateUrl(id), {
+                            method: "POST",
+                            headers: {
+                                "Accept": "application/json",
+                                "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"
+                            },
+                            body: body.toString()
+                        });
+                        const payload = await this.readPayload(response);
+                        if (!response.ok || !payload.ok || !payload.testcase) {
+                            throw new Error(payload.message || "Could not update testcase.");
+                        }
+
+                        const updatedRow = this.normalizeRow(payload.testcase);
+                        this.rows = this.rows.map((candidate) => candidate.id === id ? updatedRow : candidate);
+                        this.applyRowToDom(updatedRow);
+                        this.editingTestCaseId = null;
+                        this.editDraft = this.emptyDraft();
+                        this.inlineMessage = payload.message || "Testcase updated.";
+                    } catch (error) {
+                        this.inlineError = error instanceof Error ? error.message : "Could not update testcase.";
+                    } finally {
+                        this.busy = false;
+                    }
+                },
+
+                async deleteRow(id) {
+                    if (this.busy) {
+                        return;
+                    }
+                    if (!window.confirm("Delete this testcase?")) {
+                        return;
+                    }
+
+                    this.busy = true;
+                    this.inlineMessage = "";
+                    this.inlineError = "";
+
+                    const body = new URLSearchParams();
+                    body.set(this.config.csrfParameterName, this.config.csrfToken);
+
+                    try {
+                        const response = await fetch(this.buildDeleteUrl(id), {
+                            method: "POST",
+                            headers: {
+                                "Accept": "application/json",
+                                "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"
+                            },
+                            body: body.toString()
+                        });
+                        const payload = await this.readPayload(response);
+                        if (!response.ok || !payload.ok) {
+                            throw new Error(payload.message || "Could not delete testcase.");
+                        }
+
+                        this.rows = this.rows.filter((candidate) => candidate.id !== id);
+                        const element = this.rowElement(id);
+                        if (element) {
+                            element.remove();
+                        }
+                        if (this.editingTestCaseId === id) {
+                            this.editingTestCaseId = null;
+                            this.editDraft = this.emptyDraft();
+                        }
+                        this.updateCountBadges();
+                        this.syncInlineEmptyState();
+                        this.inlineMessage = payload.message || "Testcase deleted.";
+                    } catch (error) {
+                        this.inlineError = error instanceof Error ? error.message : "Could not delete testcase.";
+                    } finally {
+                        this.busy = false;
+                    }
+                },
+
+                async readPayload(response) {
+                    const contentType = response.headers.get("content-type") || "";
+                    if (!contentType.includes("application/json")) {
+                        return { ok: false, message: "Unexpected response. Your session may have expired." };
+                    }
+                    try {
+                        return await response.json();
+                    } catch (error) {
+                        return { ok: false, message: "Could not parse server response." };
+                    }
+                },
+
+                buildUpdateUrl(id) {
+                    return this.buildUrl(id, "inline");
+                },
+
+                buildDeleteUrl(id) {
+                    return this.buildUrl(id, "delete-inline");
+                },
+
+                buildUrl(id, action) {
+                    const base = (this.config.testcaseUrlBase || "").replace(/\/$/, "");
+                    if (!base) {
+                        throw new Error("Inline testcase URL is not configured.");
+                    }
+                    return base + "/" + encodeURIComponent(String(id)) + "/" + action;
+                },
+
+                normalizeRow(row) {
+                    const inputData = row.inputData ?? "";
+                    const expectedOutput = row.expectedOutput ?? "";
+                    return {
+                        id: Number(row.id),
+                        caseOrder: Number(row.caseOrder),
+                        weight: row.weight == null ? "" : String(row.weight),
+                        inputData: inputData,
+                        inputPreview: row.inputPreview || this.previewText(inputData, "(empty)"),
+                        expectedOutput: expectedOutput,
+                        expectedOutputPreview: row.expectedOutputPreview || this.previewText(expectedOutput, "")
+                    };
+                },
+
+                previewText(value, emptyFallback) {
+                    if (!value) {
+                        return emptyFallback;
+                    }
+                    return value.length <= 80 ? value : value.substring(0, 79) + "\u2026";
+                },
+
+                applyRowToDom(row) {
+                    const element = this.rowElement(row.id);
+                    if (!element) {
+                        return;
+                    }
+
+                    element.dataset.caseOrder = String(row.caseOrder);
+                    element.dataset.weight = row.weight;
+                    element.dataset.inputData = row.inputData;
+                    element.dataset.inputPreview = row.inputPreview;
+                    element.dataset.expectedOutput = row.expectedOutput;
+                    element.dataset.expectedOutputPreview = row.expectedOutputPreview;
+
+                    this.setText(element, "caseLabel", "Case " + row.caseOrder);
+                    this.setText(element, "weight", row.weight);
+                    this.setText(element, "inputPreview", row.inputPreview);
+                    this.setText(element, "expectedOutputPreview", row.expectedOutputPreview);
+                },
+
+                setText(element, field, value) {
+                    const target = element.querySelector('[data-field="' + field + '"]');
+                    if (target) {
+                        target.textContent = value;
+                    }
+                },
+
+                updateCountBadges() {
+                    const text = this.rows.length + " testcase(s)";
+                    this.$el.querySelectorAll("[data-testcase-count]").forEach((badge) => {
+                        badge.textContent = text;
+                    });
+                },
+
+                syncInlineEmptyState() {
+                    const emptyState = this.$el.querySelector("[data-inline-empty-state]");
+                    const table = this.$el.querySelector("[data-inline-table]");
+                    if (emptyState) {
+                        emptyState.classList.toggle("hidden", this.rows.length !== 0);
+                    }
+                    if (table) {
+                        table.classList.toggle("hidden", this.rows.length === 0);
+                    }
+                }
+            };
+        }
+    </script>
 
     <footer th:replace="~{fragments/footer :: footer}"></footer>
 </div>

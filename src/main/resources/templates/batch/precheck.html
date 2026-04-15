@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Batch Precheck')}"></head>
+<body class="bg-white text-stone-950">
+<div class="min-h-screen">
+    <header th:replace="~{fragments/header :: header}"></header>
+
+    <main class="mx-auto max-w-[1680px] px-4 py-6 lg:px-6">
+        <div th:replace="~{fragments/alerts :: alerts}"></div>
+
+        <section class="rounded-[30px] border border-stone-200 bg-white shadow-[0_18px_40px_rgba(28,25,23,0.06)]">
+            <div class="border-b border-stone-100 bg-gradient-to-r from-[#002366] via-[#11534a] to-[#0f766e] px-6 py-6 text-white lg:px-8">
+                <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+                    <div class="min-w-0 max-w-4xl">
+                        <div class="mb-3 flex flex-wrap items-center gap-2 text-[0.72rem] uppercase tracking-[0.24em] text-blue-100/80">
+                            <a class="transition hover:text-white" th:href="@{/dashboard}">Dashboard</a>
+                            <span>/</span>
+                            <a class="transition hover:text-white" th:href="@{/semesters}">Semester Board</a>
+                            <span>/</span>
+                            <a class="transition hover:text-white" th:href="@{/semesters/{id}(id=${precheck.assignment.semester.id})}" th:text="${precheck.assignment.semester.code}">SP26</a>
+                            <span>/</span>
+                            <a class="transition hover:text-white" th:href="@{/assignments/{id}(id=${precheck.assignment.id})}" th:text="${precheck.assignment.assignmentName}">Week 3</a>
+                            <span>/</span>
+                            <span>Batch Precheck</span>
+                        </div>
+                        <h1 class="font-['DM_Serif_Display'] text-4xl leading-none tracking-[-0.04em] lg:text-[3.25rem]">Batch Precheck</h1>
+                        <p class="mt-4 max-w-3xl text-sm leading-6 text-blue-50/88"
+                           th:text="${precheck.assignment.assignmentName + ' | freeze the gradeable list before running the grader'}">
+                            Week 3 | freeze the gradeable list before running the grader
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="grid gap-6 px-4 py-5 lg:grid-cols-[220px_minmax(0,1fr)_320px] lg:px-6 lg:py-6">
+                <aside class="lg:sticky lg:top-24 lg:self-start">
+                    <div th:replace="~{fragments/workspace-nav :: assignmentStages(${precheck.assignment.id}, 'batch')}"></div>
+                </aside>
+
+                <div class="min-w-0 space-y-6">
+                    <section class="overflow-hidden rounded-[24px] border border-stone-200 bg-white shadow-[0_12px_30px_rgba(28,25,23,0.04)]">
+                        <div class="border-b border-stone-100 px-6 py-5">
+                            <div class="flex flex-wrap items-center justify-between gap-4">
+                                <div>
+                                    <p class="mb-1 text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-stone-400">Precheck Summary</p>
+                                    <h2 class="font-['DM_Serif_Display'] text-3xl leading-none tracking-[-0.03em] text-stone-900">Freeze only what is ready</h2>
+                                </div>
+                                <div class="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[0.75rem] font-medium"
+                                     th:class="${precheck.canCreateBatch() ? 'bg-blue-50 text-blue-700' : 'bg-amber-50 text-amber-700'}">
+                                    <span class="material-symbols-outlined text-[18px]"
+                                          th:text="${precheck.canCreateBatch() ? 'check_circle' : 'pending_actions'}">check_circle</span>
+                                    <span th:text="${precheck.canCreateBatch() ? 'Snapshot can be created now' : 'Resolve the upstream gates first'}">Snapshot can be created now</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid gap-4 px-6 py-6 sm:grid-cols-2 xl:grid-cols-4">
+                            <div class="rounded-[22px] bg-stone-50 px-4 py-4">
+                                <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-400">Latest Report</p>
+                                <p class="mt-2 text-lg font-semibold text-stone-900" th:text="${precheck.latestReport != null ? precheck.latestReport.status : 'Not available'}">COMPLETED</p>
+                            </div>
+                            <div class="rounded-[22px] bg-blue-50 px-4 py-4">
+                                <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-blue-700/70">Gradeable</p>
+                                <p class="mt-2 text-2xl font-semibold text-blue-900" th:text="${#lists.size(precheck.gradeableEntries)}">0</p>
+                            </div>
+                            <div class="rounded-[22px] bg-rose-50 px-4 py-4">
+                                <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-rose-700/70">Excluded</p>
+                                <p class="mt-2 text-2xl font-semibold text-rose-900" th:text="${#lists.size(precheck.excludedEntries)}">0</p>
+                            </div>
+                            <div class="rounded-[22px] bg-stone-50 px-4 py-4">
+                                <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-400">Total Scope</p>
+                                <p class="mt-2 text-2xl font-semibold text-stone-900" th:text="${precheck.totalEntries()}">0</p>
+                            </div>
+                        </div>
+
+                        <div class="border-t border-stone-100 px-6 py-5 text-sm leading-6 text-stone-500">
+                            <p th:unless="${precheck.hasCompletedReport()}">
+                                Run plagiarism first. Until that report completes, validated submissions remain excluded from grading.
+                            </p>
+                            <p th:if="${precheck.hasCompletedReport() and !precheck.hasStartedBatch()}">
+                                Create the snapshot when the gradeable list looks correct. The batch will keep that list frozen even if later uploads change the eligible pool.
+                            </p>
+                            <p th:if="${precheck.hasStartedBatch()}">
+                                A batch already started from the frozen snapshot. You can jump directly to progress, results, or reports.
+                            </p>
+                            <div class="mt-4 flex flex-wrap items-center gap-3">
+                                <form th:if="${precheck.canCreateBatch()}"
+                                      th:action="@{/assignments/{assignmentId}/batches/create(assignmentId=${precheck.assignment.id})}"
+                                      method="post"
+                                      class="m-0">
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                    <button class="inline-flex items-center gap-2 rounded-2xl bg-[#002366] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#001b4f]"
+                                            type="submit">
+                                        <span class="material-symbols-outlined text-[18px]">inventory</span>
+                                        Create Snapshot
+                                    </button>
+                                </form>
+
+                                <form th:if="${precheck.latestBatch != null and precheck.latestBatch.canStart()}"
+                                      th:action="@{/assignments/{assignmentId}/batches/{batchId}/start(assignmentId=${precheck.assignment.id}, batchId=${precheck.latestBatch.id})}"
+                                      method="post"
+                                      class="m-0">
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                    <button class="inline-flex items-center gap-2 rounded-2xl bg-[#347070] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#214d4a]"
+                                            type="submit">
+                                        <span class="material-symbols-outlined text-[18px]">play_arrow</span>
+                                        Start Grading
+                                    </button>
+                                </form>
+
+                                <button th:if="${precheck.latestBatch == null or !precheck.latestBatch.canStart()}"
+                                        class="inline-flex items-center gap-2 rounded-2xl bg-stone-200 px-4 py-2.5 text-sm font-semibold text-stone-500"
+                                        type="button"
+                                        disabled>
+                                    <span class="material-symbols-outlined text-[18px]">play_arrow</span>
+                                    Start Grading
+                                </button>
+
+                                <a class="inline-flex items-center gap-2 rounded-2xl border border-stone-300 bg-white px-4 py-2.5 text-sm font-semibold text-stone-900 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+                                   th:if="${precheck.latestBatch != null and !precheck.latestBatch.canStart()}"
+                                   th:href="@{/assignments/{assignmentId}/batches/{batchId}(assignmentId=${precheck.assignment.id}, batchId=${precheck.latestBatch.id})}">
+                                    <span class="material-symbols-outlined text-[18px]">monitoring</span>
+                                    Continue To Batch Progress
+                                </a>
+                                <a class="inline-flex items-center gap-2 rounded-2xl border border-stone-300 bg-white px-4 py-2.5 text-sm font-semibold text-stone-900 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+                                   th:if="${precheck.latestBatch != null and !precheck.latestBatch.canStart()}"
+                                   th:href="@{/assignments/{assignmentId}/results(assignmentId=${precheck.assignment.id})}">
+                                    <span class="material-symbols-outlined text-[18px]">lab_profile</span>
+                                    View Results
+                                </a>
+                                <a class="inline-flex items-center gap-2 rounded-2xl border border-stone-300 bg-white px-4 py-2.5 text-sm font-semibold text-stone-900 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+                                   th:if="${precheck.latestBatch != null and !precheck.latestBatch.canStart()}"
+                                   th:href="@{/assignments/{assignmentId}/reports(assignmentId=${precheck.assignment.id})}">
+                                    <span class="material-symbols-outlined text-[18px]">download</span>
+                                    Reports
+                                </a>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="overflow-hidden rounded-[24px] border border-stone-200 bg-white shadow-[0_12px_30px_rgba(28,25,23,0.04)]">
+                        <div class="border-b border-stone-100 px-6 py-5">
+                            <div class="flex flex-wrap items-center justify-between gap-4">
+                                <div>
+                                    <p class="mb-1 text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-stone-400">Gradeable Submissions</p>
+                                    <h2 class="font-['DM_Serif_Display'] text-3xl leading-none tracking-[-0.03em] text-stone-900">Ready for the snapshot</h2>
+                                </div>
+                                <span class="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1.5 text-[0.75rem] font-medium text-blue-700">
+                                    <span class="material-symbols-outlined text-[18px]">done_all</span>
+                                    <span th:text="${#lists.size(precheck.gradeableEntries) + ' gradeable'}">0 gradeable</span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="px-6 py-6">
+                            <div class="rounded-[22px] border border-dashed border-stone-300 bg-stone-50 px-5 py-10 text-center text-sm text-stone-500"
+                                 th:if="${#lists.isEmpty(precheck.gradeableEntries)}">
+                                No submission is fully ready for grading yet.
+                            </div>
+
+                            <div class="overflow-hidden rounded-[22px] border border-stone-200" th:if="${!#lists.isEmpty(precheck.gradeableEntries)}">
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-full divide-y divide-stone-200 text-sm">
+                                        <thead class="bg-stone-50 text-left text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-500">
+                                        <tr>
+                                            <th class="px-4 py-3">Submission</th>
+                                            <th class="px-4 py-3">Status</th>
+                                            <th class="px-4 py-3">Reason</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-stone-100 bg-white">
+                                        <tr th:each="entry : ${precheck.gradeableEntries}">
+                                            <td class="px-4 py-4 font-semibold text-stone-900" th:text="${entry.submitterName}">s2210003</td>
+                                            <td class="px-4 py-4">
+                                                <span class="inline-flex rounded-full bg-blue-50 px-3 py-1 text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-blue-700"
+                                                      th:text="${entry.currentStatus}">VALIDATED</span>
+                                            </td>
+                                            <td class="px-4 py-4 text-stone-500" th:text="${entry.reason}">Validated and cleared</td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="overflow-hidden rounded-[24px] border border-stone-200 bg-white shadow-[0_12px_30px_rgba(28,25,23,0.04)]">
+                        <div class="border-b border-stone-100 px-6 py-5">
+                            <p class="mb-1 text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-stone-400">Excluded Submissions</p>
+                            <h2 class="font-['DM_Serif_Display'] text-3xl leading-none tracking-[-0.03em] text-stone-900">Waiting outside the batch</h2>
+                        </div>
+
+                        <div class="px-6 py-6">
+                            <div class="rounded-[22px] border border-dashed border-stone-300 bg-stone-50 px-5 py-10 text-center text-sm text-stone-500"
+                                 th:if="${#lists.isEmpty(precheck.excludedEntries)}">
+                                No submission is currently excluded by validation or plagiarism checks.
+                            </div>
+
+                            <div class="overflow-hidden rounded-[22px] border border-stone-200" th:if="${!#lists.isEmpty(precheck.excludedEntries)}">
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-full divide-y divide-stone-200 text-sm">
+                                        <thead class="bg-stone-50 text-left text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-500">
+                                        <tr>
+                                            <th class="px-4 py-3">Submission</th>
+                                            <th class="px-4 py-3">Status</th>
+                                            <th class="px-4 py-3">Reason</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-stone-100 bg-white">
+                                        <tr th:each="entry : ${precheck.excludedEntries}">
+                                            <td class="px-4 py-4 font-semibold text-stone-900" th:text="${entry.submitterName}">s2210001</td>
+                                            <td class="px-4 py-4">
+                                                <span class="inline-flex rounded-full bg-rose-50 px-3 py-1 text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-rose-700"
+                                                      th:text="${entry.currentStatus}">REJECTED</span>
+                                            </td>
+                                            <td class="px-4 py-4 text-stone-500" th:text="${entry.reason}">Flagged with s2210002</td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+
+                <aside class="space-y-4">
+                    <section class="overflow-hidden rounded-[24px] border border-stone-200 bg-white shadow-[0_12px_24px_rgba(28,25,23,0.04)]">
+                        <div class="border-b border-stone-100 px-5 py-5">
+                            <p class="text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-stone-400">Execution Capacity</p>
+                            <h2 class="mt-2 font-['DM_Serif_Display'] text-3xl leading-none text-stone-900">Batch Runtime</h2>
+                        </div>
+                        <div class="space-y-3 px-5 py-5">
+                            <div class="rounded-[20px] bg-stone-50 px-4 py-4">
+                                <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-400">Workers</p>
+                                <p class="mt-2 text-2xl font-semibold text-stone-900" th:text="${precheck.workerCount}">1</p>
+                            </div>
+                            <div class="rounded-[20px] bg-stone-50 px-4 py-4">
+                                <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-400">Queue Capacity</p>
+                                <p class="mt-2 text-2xl font-semibold text-stone-900" th:text="${precheck.queueCapacity}">8</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="overflow-hidden rounded-[24px] border border-stone-200 bg-[#002366] text-white shadow-[0_16px_32px_rgba(12,59,53,0.18)]" th:if="${precheck.latestBatch != null}">
+                        <div class="px-5 py-5">
+                            <p class="text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-blue-100/70">Latest Batch</p>
+                            <h2 class="mt-2 font-['DM_Serif_Display'] text-3xl leading-none"
+                                th:text="${'Batch #' + precheck.latestBatch.id}">Batch #12</h2>
+                            <p class="mt-3 text-sm text-blue-50/80" th:text="${precheck.latestBatch.precheckSummary}">Snapshot summary</p>
+
+                            <div class="mt-5 space-y-3">
+                                <div class="rounded-[18px] bg-white/10 px-4 py-4">
+                                    <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-blue-100/70">Status</p>
+                                    <p class="mt-2 text-sm font-semibold text-white" th:text="${precheck.latestBatch.status}">PRECHECKED</p>
+                                </div>
+                                <div class="rounded-[18px] bg-white/10 px-4 py-4">
+                                    <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-blue-100/70">Created By</p>
+                                    <p class="mt-2 text-sm font-semibold text-white" th:text="${precheck.latestBatch.createdBy}">teacher</p>
+                                </div>
+                            </div>
+
+                        </div>
+                    </section>
+                </aside>
+            </div>
+        </section>
+    </main>
+
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+</div>
+</body>
+</html>
