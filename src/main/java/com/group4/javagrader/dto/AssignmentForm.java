@@ -1,86 +1,128 @@
 package com.group4.javagrader.dto;
 
-import jakarta.validation.constraints.DecimalMax;
-import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.Digits;
+import com.group4.javagrader.entity.AssignmentType;
+import com.group4.javagrader.entity.GradingMode;
+import com.group4.javagrader.entity.InputMode;
+import com.group4.javagrader.entity.OutputNormalizationPolicy;
+import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.math.BigDecimal;
 
+@Getter
+@Setter
 public class AssignmentForm {
 
-    @NotNull(message = "Semester is required.")
+    @NotBlank(message = "Assignment name must not be empty.")
+    private String assignmentName;
+
     private Long semesterId;
 
-    @NotBlank(message = "Assignment title is required.")
-    @Size(max = 150, message = "Assignment title must be at most 150 characters.")
-    private String title;
+    private Long courseId;
 
-    @Size(max = 2000, message = "Description must be at most 2000 characters.")
-    private String description;
-
-    @NotBlank(message = "Grading mode is required.")
-    @Pattern(regexp = "JAVA_CORE|OOP", message = "Grading mode must be JAVA_CORE or OOP.")
-    private String gradingMode = "JAVA_CORE";
-
-    @NotNull(message = "Total score is required.")
-    @DecimalMin(value = "1.00", message = "Total score must be at least 1.")
-    @Digits(integer = 5, fraction = 2, message = "Total score format is invalid.")
-    private BigDecimal totalScore = new BigDecimal("100.00");
+    @NotNull(message = "Grading mode must be selected.")
+    private GradingMode gradingMode = GradingMode.JAVA_CORE;
 
     @NotNull(message = "Plagiarism threshold is required.")
-    @DecimalMin(value = "0.00", message = "Threshold cannot be negative.")
-    @DecimalMax(value = "100.00", message = "Threshold cannot exceed 100.")
-    @Digits(integer = 5, fraction = 2, message = "Threshold format is invalid.")
-    private BigDecimal plagiarismThreshold = new BigDecimal("80.00");
+    @Min(value = 0, message = "Threshold cannot be negative.")
+    @Max(value = 100, message = "Threshold cannot exceed 100.")
+    private Integer plagiarismThreshold = 80;
 
-    public Long getSemesterId() {
-        return semesterId;
+    @NotNull(message = "Output normalization policy must be selected.")
+    private OutputNormalizationPolicy outputNormalizationPolicy = OutputNormalizationPolicy.STRICT;
+
+    @NotNull(message = "Input mode must be selected.")
+    private InputMode inputMode = InputMode.STDIN;
+
+    @NotNull(message = "Default mark is required.")
+    @jakarta.validation.constraints.DecimalMin(
+            value = "0.0",
+            inclusive = true,
+            message = "Default mark cannot be negative.")
+    private BigDecimal defaultMark = BigDecimal.valueOf(100);
+
+    @NotNull(message = "Assignment type must be selected.")
+    private AssignmentType assignmentType = AssignmentType.CUSTOM;
+
+    @Min(value = 1, message = "Week number must be at least 1.")
+    @Max(value = 52, message = "Week number cannot exceed 52.")
+    private Integer weekNumber;
+
+    @Min(value = 0, message = "Weight cannot be negative.")
+    @Max(value = 100, message = "Weight cannot exceed 100.")
+    private Integer logicWeight = 50;
+
+    @Min(value = 0, message = "Weight cannot be negative.")
+    @Max(value = 100, message = "Weight cannot exceed 100.")
+    private Integer oopWeight = 50;
+
+    private MultipartFile descriptionFile;
+
+    private MultipartFile oopRuleConfig;
+
+    @AssertTrue(message = "Course or semester must be selected.")
+    public boolean isCourseOrSemesterPresent() {
+        return courseId != null || semesterId != null;
     }
 
-    public void setSemesterId(Long semesterId) {
-        this.semesterId = semesterId;
+    @AssertTrue(message = "Logic weight is required when grading mode is OOP.")
+    public boolean isLogicWeightPresentWhenOop() {
+        return !isOopMode() || logicWeight != null;
     }
 
-    public String getTitle() {
-        return title;
+    @AssertTrue(message = "OOP weight is required when grading mode is OOP.")
+    public boolean isOopWeightPresentWhenOop() {
+        return !isOopMode() || oopWeight != null;
     }
 
-    public void setTitle(String title) {
-        this.title = title;
+    @AssertTrue(message = "Logic weight and OOP weight must sum to 100.")
+    public boolean isWeightDistributionValid() {
+        if (!isOopMode() || logicWeight == null || oopWeight == null) {
+            return true;
+        }
+        return logicWeight + oopWeight == 100;
     }
 
-    public String getDescription() {
-        return description;
+    @AssertTrue(message = "Week number is required when assignment type is WEEKLY.")
+    public boolean isWeekNumberPresentWhenWeekly() {
+        return !isWeeklyAssignmentType() || weekNumber != null;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    public boolean isOopMode() {
+        return gradingMode == GradingMode.OOP;
     }
 
-    public String getGradingMode() {
-        return gradingMode;
+    public boolean isJavaCoreMode() {
+        return gradingMode == GradingMode.JAVA_CORE;
     }
 
-    public void setGradingMode(String gradingMode) {
+    public boolean isWeeklyAssignmentType() {
+        return assignmentType == AssignmentType.WEEKLY;
+    }
+
+    public boolean isFileInputMode() {
+        return inputMode == InputMode.FILE;
+    }
+
+    public void setGradingMode(GradingMode gradingMode) {
         this.gradingMode = gradingMode;
     }
 
-    public BigDecimal getTotalScore() {
-        return totalScore;
+    public void setOutputNormalizationPolicy(OutputNormalizationPolicy outputNormalizationPolicy) {
+        this.outputNormalizationPolicy = outputNormalizationPolicy;
     }
 
-    public void setTotalScore(BigDecimal totalScore) {
-        this.totalScore = totalScore;
+    public void setInputMode(InputMode inputMode) {
+        this.inputMode = inputMode;
     }
 
-    public BigDecimal getPlagiarismThreshold() {
-        return plagiarismThreshold;
-    }
-
-    public void setPlagiarismThreshold(BigDecimal plagiarismThreshold) {
-        this.plagiarismThreshold = plagiarismThreshold;
+    public void setAssignmentType(AssignmentType assignmentType) {
+        this.assignmentType = assignmentType;
     }
 }
