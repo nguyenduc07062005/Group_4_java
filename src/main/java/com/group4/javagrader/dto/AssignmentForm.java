@@ -109,20 +109,4 @@ public class AssignmentForm {
     public boolean isFileInputMode() {
         return inputMode == InputMode.FILE;
     }
-
-    public void setGradingMode(GradingMode gradingMode) {
-        this.gradingMode = gradingMode;
-    }
-
-    public void setOutputNormalizationPolicy(OutputNormalizationPolicy outputNormalizationPolicy) {
-        this.outputNormalizationPolicy = outputNormalizationPolicy;
-    }
-
-    public void setInputMode(InputMode inputMode) {
-        this.inputMode = inputMode;
-    }
-
-    public void setAssignmentType(AssignmentType assignmentType) {
-        this.assignmentType = assignmentType;
-    }
 }

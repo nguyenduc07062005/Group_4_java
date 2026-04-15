@@ -141,7 +141,7 @@ class BatchServiceImplTest {
                 2,
                 8);
 
-        when(assignmentRepository.findById(12L)).thenReturn(Optional.empty());
+        when(assignmentRepository.findByIdWithSemesterAndCourse(12L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> batchService.buildPrecheck(12L))
                 .isInstanceOf(ResourceNotFoundException.class)
@@ -173,7 +173,7 @@ class BatchServiceImplTest {
                 8,
                 2);
 
-        when(assignmentRepository.findById(12L)).thenReturn(Optional.of(assignment));
+        when(assignmentRepository.findByIdWithSemesterAndCourse(12L)).thenReturn(Optional.of(assignment));
         when(submissionRepository.findByAssignmentIdOrderByCreatedAtDescIdDesc(12L)).thenReturn(List.of());
         when(plagiarismService.buildDashboard(12L)).thenReturn(new com.group4.javagrader.dto.PlagiarismDashboardView(
                 assignment,

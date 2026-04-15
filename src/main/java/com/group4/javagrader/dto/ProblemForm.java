@@ -35,12 +35,4 @@ public class ProblemForm {
     public boolean isFileInputMode() {
         return inputMode == InputMode.FILE;
     }
-
-    public void setInputMode(InputMode inputMode) {
-        this.inputMode = inputMode;
-    }
-
-    public void setOutputComparisonMode(OutputComparisonMode outputComparisonMode) {
-        this.outputComparisonMode = outputComparisonMode;
-    }
 }
