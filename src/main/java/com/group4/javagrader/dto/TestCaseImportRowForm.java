@@ -10,10 +10,10 @@ import java.math.BigDecimal;
 
 @Getter
 @Setter
-public class TestCaseForm {
+public class TestCaseImportRowForm {
 
-    @NotNull(message = "Problem is required.")
-    private Long problemId;
+    @NotBlank(message = "Source name is required.")
+    private String sourceName;
 
     private String inputData = "";
 

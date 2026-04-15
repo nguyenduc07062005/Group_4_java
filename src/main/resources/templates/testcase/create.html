@@ -5,76 +5,269 @@
 <div class="app-shell">
     <header th:replace="~{fragments/header :: header}"></header>
 
-    <div class="page-content">
-        <div class="app-layout">
-            <aside th:replace="~{fragments/sidebar :: sidebar('assignments')}"></aside>
+    <main class="page-content workspace-page">
+        <div th:replace="~{fragments/alerts :: alerts}"></div>
 
-            <main class="content-stack">
-                <div th:replace="~{fragments/alerts :: alerts}"></div>
-
-                <section class="form-card">
-                    <div class="page-header">
-                        <div>
-                            <h1 class="page-title">Create Test Case</h1>
-                            <p class="page-subtitle" th:text="${'Problem ' + problem.problemOrder + ': ' + problem.title}">Problem context.</p>
-                        </div>
-                        <div class="page-actions">
-                            <a class="btn btn-secondary" th:href="@{/assignments/{id}(id=${assignment.id})}">Back to Assignment</a>
-                        </div>
+        <section class="workspace-unified-shell workspace-unified-shell-form">
+            <div class="workspace-unified-hero">
+                <div>
+                    <div class="workspace-path">
+                        <a th:href="@{/dashboard}">Dashboard</a>
+                        <span class="workspace-path-separator">/</span>
+                        <a th:href="@{/semesters}">Semester Board</a>
+                        <span class="workspace-path-separator">/</span>
+                        <a th:href="@{/semesters/{id}(id=${assignment.semester.id})}" th:text="${assignment.semester.code}">SP26</a>
+                        <span class="workspace-path-separator">/</span>
+                        <span th:text="${assignment.course.courseCode}">SWE201</span>
+                        <span class="workspace-path-separator">/</span>
+                        <a th:href="@{/assignments/{id}(id=${assignment.id})}" th:text="${assignment.assignmentName}">Lab 01</a>
+                        <span class="workspace-path-separator">/</span>
+                        <span class="workspace-path-current">Testcases</span>
                     </div>
+                    <h1 class="page-title">Add Test Cases</h1>
+                    <p class="page-subtitle"
+                       th:text="${problem.internalDefault} ? |Assignment runtime for ${assignment.assignmentName}| : |Problem ${problem.problemOrder}: ${problem.title}|">
+                        Assignment runtime for Lab 01
+                    </p>
+                </div>
+                <div class="page-actions">
+                    <a class="btn btn-primary"
+                       th:if="${allAssignmentProblemsHaveTestCases}"
+                       th:href="@{/assignments/{assignmentId}/submissions/upload(assignmentId=${assignment.id})}">Continue To Upload Submissions</a>
+                    <a class="btn btn-secondary"
+                       th:if="${showProblemSelector and nextProblemForTestCasesId != null}"
+                       th:href="@{/problems/{problemId}/testcases/create(problemId=${nextProblemForTestCasesId})}">Next Problem Needing Testcases</a>
+                    <a class="btn btn-secondary" th:href="@{/assignments/{id}(id=${assignment.id})}">Back To Assignment</a>
+                </div>
+            </div>
 
-                    <div class="info-card compact-card">
-                        <div class="info-list">
-                            <div class="info-row">
-                                <span class="info-label">Assignment</span>
-                                <strong th:text="${assignment.title}">Lab 01</strong>
-                            </div>
-                            <div class="info-row">
-                                <span class="info-label">Current Test Cases</span>
-                                <strong th:text="${problem.testCaseCount}">0</strong>
+            <div class="workspace-stage-layout">
+                <aside class="workspace-stage-sidebar">
+                    <div th:replace="~{fragments/workspace-nav :: assignmentStages(${assignment.id}, 'setup')}"></div>
+                </aside>
+
+                <div class="workspace-stage-main">
+                    <div class="workspace-unified-body">
+                <div class="content-stack">
+                    <section class="info-card content-stack" th:if="${showProblemSelector}">
+                        <div class="section-head">
+                            <div>
+                                <h2 class="section-title">Problem Selector</h2>
+                                <p class="form-help"
+                                   th:text="|${configuredAssignmentProblemCount} / ${assignmentProblems.size()} ready.|">1 / 2 ready.</p>
                             </div>
                         </div>
-                    </div>
 
-                    <form th:action="@{/problems/{problemId}/testcases/create(problemId=${problem.id})}"
-                          th:object="${testCaseForm}"
-                          method="post">
-                        <div class="form-grid">
-                            <div class="detail-grid">
-                                <div class="form-group">
-                                    <label class="form-label" for="testcase-order">Case Order</label>
-                                    <input class="form-input" id="testcase-order" type="number" th:field="*{caseOrder}">
-                                    <div class="field-error" th:if="${#fields.hasErrors('caseOrder')}" th:errors="*{caseOrder}"></div>
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label" for="testcase-sample">Sample Case</label>
-                                    <select class="form-select" id="testcase-sample" th:field="*{sample}">
-                                        <option th:value="false">No</option>
-                                        <option th:value="true">Yes</option>
-                                    </select>
+                        <div class="step-grid">
+                            <div class="detail-item" th:each="assignmentProblem : ${assignmentProblems}">
+                                <span class="detail-label" th:text="|Problem ${assignmentProblem.problemOrder}|">Problem 1</span>
+                                <span class="detail-value" th:text="${assignmentProblem.title}">Warmup</span>
+                                <span class="status-chip"
+                                      th:classappend="${assignmentProblem.id == problem.id ? '' : (assignmentProblemTestCaseCounts[assignmentProblem.id] > 0 ? ' status-chip-success' : ' status-chip-pending')}">
+                                    <span th:text="${assignmentProblem.id == problem.id ? 'Selected' : (assignmentProblemTestCaseCounts[assignmentProblem.id] > 0 ? 'Ready' : 'Needed')}">Selected</span>
+                                </span>
+                                <p class="form-help"
+                                   th:text="|${assignmentProblemTestCaseCounts[assignmentProblem.id]} testcase(s).|">0 testcase(s).</p>
+                                <div class="page-actions" th:if="${assignmentProblem.id != problem.id}">
+                                    <a class="btn btn-secondary"
+                                       th:href="@{/problems/{problemId}/testcases/create(problemId=${assignmentProblem.id})}">Open Problem</a>
                                 </div>
                             </div>
-                            <div class="form-group">
-                                <label class="form-label" for="testcase-input">Input</label>
-                                <textarea class="form-textarea" id="testcase-input" rows="5" th:field="*{inputData}" placeholder="Input data"></textarea>
-                                <div class="field-error" th:if="${#fields.hasErrors('inputData')}" th:errors="*{inputData}"></div>
+                        </div>
+                    </section>
+
+                    <section class="content-card">
+                        <div class="section-head">
+                            <div>
+                                <h2 class="section-title">Manual Entry</h2>
+                                <p class="form-help" th:text="${assignment.course.courseCode + ' - ' + assignment.course.courseName + ' | ' + assignment.assignmentName}">SWE201 - Software Engineering | Week 1</p>
                             </div>
+                        </div>
+
+                        <div class="note-panel">
+                            <p th:if="${problem.internalDefault}"
+                               th:text="|This assignment uses one runtime block. Current mode: ${problem.fileInputMode ? 'Read from input.txt' : 'Console / STDIN'}. Existing testcases: ${currentProblemTestCaseCount}.|">
+                                This assignment uses one runtime block. Current mode: Console / STDIN. Existing testcases: 0.
+                            </p>
+                            <p th:unless="${problem.internalDefault}"
+                               th:text="|You are editing Problem ${problem.problemOrder}. Current mode: ${problem.fileInputMode ? 'Read from input.txt' : 'Console / STDIN'}. Existing testcases: ${currentProblemTestCaseCount}.|">
+                                You are editing Problem 1. Current mode: Console / STDIN. Existing testcases: 0.
+                            </p>
+                            <p th:if="${allAssignmentProblemsHaveTestCases}">
+                                Every runtime block now has testcase coverage. You can continue straight to submission intake.
+                            </p>
+                        </div>
+
+                        <form th:action="@{/problems/{problemId}/testcases/create(problemId=${problem.id})}" th:object="${testCaseForm}" method="post" class="form-grid">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                            <input type="hidden" th:field="*{problemId}">
+
+                            <div class="alerts-wrap" th:if="${#fields.hasGlobalErrors()}">
+                                <div class="alert alert-error" th:each="error : ${#fields.globalErrors()}" th:text="${error}"></div>
+                            </div>
+
                             <div class="form-group">
-                                <label class="form-label" for="testcase-output">Expected Output</label>
-                                <textarea class="form-textarea" id="testcase-output" rows="5" th:field="*{expectedOutput}" placeholder="Expected output"></textarea>
+                                <label class="form-label" for="weight">Weight</label>
+                                <input class="form-input" id="weight" th:field="*{weight}" type="number" min="0.01" step="0.01">
+                                <div class="field-error" th:if="${#fields.hasErrors('weight')}" th:errors="*{weight}"></div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="inputData">Input Data</label>
+                                <textarea class="form-textarea" id="inputData" th:field="*{inputData}" rows="6" placeholder="Optional if the testcase has no input"></textarea>
+                                <p class="form-help">Enter exactly what the program reads.</p>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="expectedOutput">Expected Output</label>
+                                <textarea class="form-textarea" id="expectedOutput" th:field="*{expectedOutput}" rows="6" placeholder="Required expected output"></textarea>
+                                <p class="form-help">Enter the final printed result.</p>
                                 <div class="field-error" th:if="${#fields.hasErrors('expectedOutput')}" th:errors="*{expectedOutput}"></div>
                             </div>
+
+                            <div class="form-actions">
+                                <button class="btn btn-primary" type="submit">Save Test Case</button>
+                                <a class="btn btn-secondary" th:href="@{/assignments/{id}(id=${assignment.id})}">Back To Assignment</a>
+                            </div>
+                        </form>
+                    </section>
+
+                    <section class="content-card">
+                        <div class="section-head">
+                            <div>
+                                <h2 class="section-title">Import Testcases</h2>
+                                <p class="form-help">Upload ZIP or CSV.</p>
+                            </div>
                         </div>
 
-                        <div class="form-actions">
-                            <button class="btn btn-primary" type="submit">Save Test Case</button>
-                            <a class="btn btn-secondary" th:href="@{/assignments/{id}(id=${assignment.id})}">Cancel</a>
+                        <div class="alert alert-error" th:if="${importErrorMessage}" th:text="${importErrorMessage}"></div>
+
+                        <form th:action="@{/problems/{problemId}/testcases/import(problemId=${problem.id})}" th:object="${testCaseImportForm}" method="post" enctype="multipart/form-data" class="form-grid">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                            <input type="hidden" th:field="*{problemId}">
+
+                            <div class="form-group">
+                                <label class="form-label" for="importFile">ZIP or CSV File</label>
+                                <input class="form-input" id="importFile" th:field="*{importFile}" type="file" accept=".zip,.csv">
+                                <p class="form-help">ZIP: <code>case01.in</code> + <code>case01.out</code>.</p>
+                                <p class="form-help">CSV: <code>expectedOutput</code> required. Optional: <code>inputData</code>, <code>weight</code>, <code>sourceName</code>.</p>
+                            </div>
+
+                            <div class="form-actions">
+                                <button class="btn btn-primary" type="submit">Parse And Preview</button>
+                            </div>
+                        </form>
+                    </section>
+
+                    <section class="content-card"
+                             th:if="${testCaseImportPreviewForm.rows != null and !#lists.isEmpty(testCaseImportPreviewForm.rows)}">
+                        <div class="section-head">
+                            <div>
+                                <h2 class="section-title">Preview Before Save</h2>
+                                <p class="form-help">Review, edit, then save.</p>
+                            </div>
                         </div>
-                    </form>
-                </section>
-            </main>
-        </div>
-    </div>
+
+                        <form th:action="@{/problems/{problemId}/testcases/import/save(problemId=${problem.id})}"
+                              th:object="${testCaseImportPreviewForm}"
+                              method="post"
+                              class="content-stack">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                            <input type="hidden" th:field="*{problemId}">
+
+                            <div class="alerts-wrap" th:if="${#fields.hasAnyErrors()}">
+                                <div class="alert alert-error" th:each="error : ${#fields.allErrors()}" th:text="${error}"></div>
+                            </div>
+
+                            <table class="data-table table-form">
+                                <thead>
+                                <tr>
+                                    <th>Source</th>
+                                    <th>Weight</th>
+                                    <th>Input</th>
+                                    <th>Expected Output</th>
+                                    <th>Action</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:each="row, rowStat : *{rows}">
+                                    <td>
+                                        <span class="detail-value" th:text="${row.sourceName}">case01</span>
+                                        <input type="hidden" th:field="*{rows[__${rowStat.index}__].sourceName}">
+                                    </td>
+                                    <td>
+                                        <input class="form-input table-input"
+                                               th:field="*{rows[__${rowStat.index}__].weight}"
+                                               type="number"
+                                               min="0.01"
+                                               step="0.01">
+                                        <div class="field-error"
+                                             th:if="${#fields.hasErrors('rows[' + rowStat.index + '].weight')}"
+                                             th:errors="*{rows[__${rowStat.index}__].weight}"></div>
+                                    </td>
+                                    <td>
+                                        <textarea class="form-textarea table-textarea"
+                                                  th:field="*{rows[__${rowStat.index}__].inputData}"
+                                                  rows="4"
+                                                  placeholder="Optional input"></textarea>
+                                    </td>
+                                    <td>
+                                        <textarea class="form-textarea table-textarea"
+                                                  th:field="*{rows[__${rowStat.index}__].expectedOutput}"
+                                                  rows="4"
+                                                  placeholder="Required expected output"></textarea>
+                                        <div class="field-error"
+                                             th:if="${#fields.hasErrors('rows[' + rowStat.index + '].expectedOutput')}"
+                                             th:errors="*{rows[__${rowStat.index}__].expectedOutput}"></div>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-secondary"
+                                                type="submit"
+                                                th:formaction="@{/problems/{problemId}/testcases/import/preview(problemId=${problem.id})}"
+                                                name="removeIndex"
+                                                th:value="${rowStat.index}">
+                                            Remove
+                                        </button>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+
+                            <div class="form-actions">
+                                <button class="btn btn-primary" type="submit">Save Imported Testcases</button>
+                            </div>
+                        </form>
+                    </section>
+
+                    <section class="info-card">
+                        <h2 class="section-title">Existing Testcases</h2>
+                        <p class="form-help" th:if="${#lists.isEmpty(testCases)}">No testcase saved for this problem yet.</p>
+
+                        <table class="data-table" th:if="${!#lists.isEmpty(testCases)}">
+                            <thead>
+                            <tr>
+                                <th>Order</th>
+                                <th>Weight</th>
+                                <th>Input Preview</th>
+                                <th>Expected Output Preview</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="testCase : ${testCases}">
+                                <td th:text="${testCase.caseOrder}">1</td>
+                                <td th:text="${testCase.weight}">1.00</td>
+                                <td th:text="${testCase.inputData != null ? #strings.abbreviate(testCase.inputData, 60) : '(empty)'}">1 2</td>
+                                <td th:text="${#strings.abbreviate(testCase.expectedOutput, 60)}">3</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </section>
+                </div>
+            </div>
+                </div>
+            </div>
+        </section>
+    </main>
 
     <footer th:replace="~{fragments/footer :: footer}"></footer>
 </div>
