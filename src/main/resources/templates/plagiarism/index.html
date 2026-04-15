@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Plagiarism Review')}"></head>
+<body class="bg-white text-stone-950">
+<div class="min-h-screen">
+    <header th:replace="~{fragments/header :: header}"></header>
+
+    <main class="mx-auto max-w-[1680px] px-4 py-6 lg:px-6">
+        <div th:replace="~{fragments/alerts :: alerts}"></div>
+
+        <section class="rounded-[30px] border border-stone-200 bg-white shadow-[0_18px_40px_rgba(28,25,23,0.06)]">
+            <div class="border-b border-stone-100 bg-gradient-to-r from-[#002366] via-[#11534a] to-[#0f766e] px-6 py-6 text-white lg:px-8">
+                <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+                    <div class="min-w-0 max-w-4xl">
+                        <div class="mb-3 flex flex-wrap items-center gap-2 text-[0.72rem] uppercase tracking-[0.24em] text-blue-100/80">
+                            <a class="transition hover:text-white" th:href="@{/dashboard}">Dashboard</a>
+                            <span>/</span>
+                            <a class="transition hover:text-white" th:href="@{/semesters}">Semester Board</a>
+                            <span>/</span>
+                            <a class="transition hover:text-white" th:href="@{/semesters/{id}(id=${dashboard.assignment.semester.id})}" th:text="${dashboard.assignment.semester.code}">SP26</a>
+                            <span>/</span>
+                            <a class="transition hover:text-white" th:href="@{/assignments/{id}(id=${dashboard.assignment.id})}" th:text="${dashboard.assignment.assignmentName}">Week 3</a>
+                            <span>/</span>
+                            <span>Plagiarism Review</span>
+                        </div>
+                        <h1 class="font-['DM_Serif_Display'] text-4xl leading-none tracking-[-0.04em] lg:text-[3.25rem]">Plagiarism Review</h1>
+                        <p class="mt-4 max-w-3xl text-sm leading-6 text-blue-50/88"
+                           th:text="${dashboard.assignment.assignmentName + ' | ' + dashboard.assignment.plagiarismThreshold + '% threshold | release or block pairs before batch grading'}">
+                            Week 3 | 35% threshold | release or block pairs before batch grading
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="grid gap-6 px-4 py-5 lg:grid-cols-[220px_minmax(0,1fr)] lg:px-6 lg:py-6">
+                <aside class="lg:sticky lg:top-24 lg:self-start">
+                    <div th:replace="~{fragments/workspace-nav :: assignmentStages(${dashboard.assignment.id}, 'plagiarism')}"></div>
+                </aside>
+
+                <div class="min-w-0 space-y-6">
+                    <section class="overflow-hidden rounded-[24px] border border-stone-200 bg-white shadow-[0_12px_30px_rgba(28,25,23,0.04)]">
+                        <div class="border-b border-stone-100 px-6 py-5">
+                            <div class="flex flex-wrap items-center justify-between gap-4">
+                                <div>
+                                    <p class="mb-1 text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-stone-400">Review Summary</p>
+                                    <h2 class="font-['DM_Serif_Display'] text-3xl leading-none tracking-[-0.03em] text-stone-900">Similarity gate before grading</h2>
+                                </div>
+                                <div class="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[0.75rem] font-medium"
+                                     th:class="${dashboard.canProceedToBatchPrecheck() ? 'bg-blue-50 text-blue-700' : 'bg-amber-50 text-amber-700'}">
+                                    <span class="material-symbols-outlined text-[18px]"
+                                          th:text="${dashboard.canProceedToBatchPrecheck() ? 'check_circle' : 'pending_actions'}">check_circle</span>
+                                    <span th:text="${dashboard.canProceedToBatchPrecheck() ? 'All blocked submissions are cleared for grading' : 'Run or review plagiarism before grading'}">All blocked submissions are cleared for grading</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid gap-4 px-6 py-6 sm:grid-cols-2 xl:grid-cols-5">
+                            <div class="rounded-[22px] bg-stone-50 px-4 py-4">
+                                <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-400">Eligible</p>
+                                <p class="mt-2 text-2xl font-semibold text-stone-900" th:text="${dashboard.validatedSubmissionCount()}">0</p>
+                            </div>
+                            <div class="rounded-[22px] bg-stone-50 px-4 py-4">
+                                <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-400">Threshold</p>
+                                <p class="mt-2 text-2xl font-semibold text-stone-900" th:text="${dashboard.assignment.plagiarismThreshold + '%'}">35%</p>
+                            </div>
+                            <div class="rounded-[22px] bg-stone-50 px-4 py-4">
+                                <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-400">Latest Status</p>
+                                <p class="mt-2 text-lg font-semibold text-stone-900" th:text="${dashboard.hasReport() ? dashboard.latestReport.status : 'Not run yet'}">COMPLETED</p>
+                            </div>
+                            <div class="rounded-[22px] bg-amber-50 px-4 py-4">
+                                <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-amber-700/70">Flagged Pairs</p>
+                                <p class="mt-2 text-2xl font-semibold text-amber-900" th:text="${dashboard.hasReport() ? dashboard.latestReport.flaggedPairCount : 0}">0</p>
+                            </div>
+                            <div class="rounded-[22px] bg-rose-50 px-4 py-4">
+                                <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-rose-700/70">Blocked</p>
+                                <p class="mt-2 text-2xl font-semibold text-rose-900" th:text="${dashboard.hasReport() ? dashboard.latestReport.blockedSubmissionCount : 0}">0</p>
+                            </div>
+                        </div>
+
+                        <div class="grid gap-4 border-t border-stone-100 px-6 py-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,280px)]">
+                            <div class="rounded-[22px] bg-stone-50 px-5 py-5">
+                                <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-400">Latest Report</p>
+                                <div class="mt-3 grid gap-3 sm:grid-cols-3">
+                                    <div class="rounded-[18px] bg-white px-4 py-4">
+                                        <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-400">Status</p>
+                                        <p class="mt-2 text-sm font-semibold text-stone-900"
+                                           th:text="${dashboard.hasReport() ? dashboard.latestReport.status : 'Waiting'}">COMPLETED</p>
+                                    </div>
+                                    <div class="rounded-[18px] bg-white px-4 py-4">
+                                        <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-400">Run By</p>
+                                        <p class="mt-2 text-sm font-semibold text-stone-900"
+                                           th:text="${dashboard.hasReport() and dashboard.latestReport.runBy != null ? dashboard.latestReport.runBy : 'system'}">teacher</p>
+                                    </div>
+                                    <div class="rounded-[18px] bg-white px-4 py-4">
+                                        <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-400">Completed At</p>
+                                        <p class="mt-2 text-sm font-semibold text-stone-900"
+                                           th:text="${dashboard.hasReport() and dashboard.latestReport.completedAt != null ? dashboard.latestReport.completedAt : 'Pending'}">Pending</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="rounded-[22px] bg-[#002366] px-5 py-5 text-white">
+                                <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-blue-100/70">Blocked Submissions</p>
+                                <div class="mt-4 space-y-3" th:if="${!#lists.isEmpty(dashboard.blockedSubmissions)}">
+                                    <article th:each="blocked : ${dashboard.blockedSubmissions}"
+                                             class="rounded-[18px] bg-white/10 px-4 py-4">
+                                        <div class="flex items-center justify-between gap-3">
+                                            <p class="text-sm font-semibold text-white" th:text="${blocked.submitterName}">s2210001</p>
+                                            <span class="rounded-full bg-rose-400/20 px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-rose-100"
+                                                  th:text="${blocked.score + '%'}">91%</span>
+                                        </div>
+                                        <p class="mt-2 text-sm text-blue-50/75" th:text="${'Matched with ' + blocked.matchedWith}">Matched with s2210002</p>
+                                    </article>
+                                </div>
+                                <p class="mt-4 text-sm text-blue-50/78" th:if="${#lists.isEmpty(dashboard.blockedSubmissions)}">
+                                    No submissions are currently blocked by the latest report.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="border-t border-stone-100 px-6 py-5">
+                            <p class="text-sm leading-6 text-stone-500" th:unless="${dashboard.hasReport()}">
+                                Run the check after at least two validated submissions exist.
+                            </p>
+                            <p class="text-sm leading-6 text-stone-500" th:if="${dashboard.hasReport()}" th:text="${dashboard.latestReport.strategySummary != null ? dashboard.latestReport.strategySummary : 'Text, token, and structure similarity contribute to the current decision.'}">
+                                Text, token, and structure similarity contribute to the current decision.
+                            </p>
+                            <div class="mt-4 flex flex-wrap items-center gap-3">
+                                <form th:action="@{/assignments/{assignmentId}/plagiarism/run(assignmentId=${dashboard.assignment.id})}" method="post" class="m-0">
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                    <button class="inline-flex items-center gap-2 rounded-2xl bg-[#002366] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#001b4f]"
+                                            type="submit">
+                                        <span class="material-symbols-outlined text-[18px]">policy</span>
+                                        Run Plagiarism Check
+                                    </button>
+                                </form>
+                                <a class="inline-flex items-center gap-2 rounded-2xl border border-stone-300 bg-white px-4 py-2.5 text-sm font-semibold text-stone-900 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+                                   th:if="${dashboard.canProceedToBatchPrecheck()}"
+                                   th:href="@{/assignments/{assignmentId}/grading(assignmentId=${dashboard.assignment.id})}">
+                                    <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+                                    Open Grading Workspace
+                                </a>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="overflow-hidden rounded-[24px] border border-stone-200 bg-white shadow-[0_12px_30px_rgba(28,25,23,0.04)]">
+                        <div class="border-b border-stone-100 px-6 py-5">
+                            <p class="mb-1 text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-stone-400">Similarity Review</p>
+                            <h2 class="font-['DM_Serif_Display'] text-3xl leading-none tracking-[-0.03em] text-stone-900">Submission pairs</h2>
+                        </div>
+
+                        <div class="space-y-3 px-6 py-6" th:if="${!#lists.isEmpty(dashboard.pairs)}">
+                            <article th:each="pair : ${dashboard.pairs}"
+                                     class="rounded-[20px] border border-stone-200 bg-stone-50/70 px-4 py-4">
+                                <div class="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
+                                    <div class="min-w-0">
+                                        <div class="flex flex-wrap items-center gap-2">
+                                            <span class="rounded-full bg-stone-900 px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-white"
+                                                  th:text="${pair.leftSubmission.submitterName}">s2211001</span>
+                                            <span class="text-stone-400">vs</span>
+                                            <span class="rounded-full bg-stone-200 px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-stone-700"
+                                                  th:text="${pair.rightSubmission.submitterName}">s2211002</span>
+                                        </div>
+                                        <p class="mt-3 max-w-3xl text-sm leading-6 text-stone-500" th:text="${pair.reason}">Similarity met or exceeded the threshold.</p>
+                                    </div>
+
+                                    <div class="flex flex-wrap items-center gap-2 xl:justify-end">
+                                        <span class="inline-flex rounded-full px-3 py-1 text-[0.72rem] font-semibold uppercase tracking-[0.16em]"
+                                              th:classappend="${pair.effectivelyBlocked ? ' bg-rose-50 text-rose-700' : ' bg-blue-50 text-blue-700'}"
+                                              th:text="${pair.effectivelyBlocked ? 'Blocked' : 'Allowed'}">Blocked</span>
+                                        <span class="inline-flex rounded-full bg-white px-3 py-1 text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-stone-600"
+                                              th:if="${pair.overrideDecision != null}"
+                                              th:text="${pair.overrideDecision + ' by ' + pair.overrideBy}">ALLOW by teacher</span>
+                                    </div>
+                                </div>
+
+                                <div class="mt-4 flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+                                    <div class="grid flex-1 gap-2 sm:grid-cols-2 xl:grid-cols-4">
+                                        <div class="rounded-[14px] bg-white px-3 py-2.5">
+                                            <p class="text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-stone-400">Text</p>
+                                            <p class="mt-1 text-sm font-semibold text-stone-900" th:text="${pair.textScore + '%'}">90%</p>
+                                        </div>
+                                        <div class="rounded-[14px] bg-white px-3 py-2.5">
+                                            <p class="text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-stone-400">Token</p>
+                                            <p class="mt-1 text-sm font-semibold text-stone-900" th:text="${pair.tokenScore + '%'}">92%</p>
+                                        </div>
+                                        <div class="rounded-[14px] bg-white px-3 py-2.5">
+                                            <p class="text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-stone-400">Structure</p>
+                                            <p class="mt-1 text-sm font-semibold text-stone-900" th:text="${pair.astScore + '%'}">80%</p>
+                                        </div>
+                                        <div class="rounded-[14px] px-3 py-2.5"
+                                             th:class="${pair.effectivelyBlocked ? 'bg-rose-50' : 'bg-blue-50'}">
+                                            <p class="text-[0.72rem] font-semibold uppercase tracking-[0.16em]"
+                                               th:classappend="${pair.effectivelyBlocked ? ' text-rose-700/70' : ' text-blue-700/70'}">Final Score</p>
+                                            <p class="mt-1 text-sm font-semibold"
+                                               th:classappend="${pair.effectivelyBlocked ? ' text-rose-900' : ' text-blue-900'}"
+                                               th:text="${pair.finalScore + '%'}">91%</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex shrink-0 flex-wrap items-center gap-2 xl:justify-end">
+                                        <form th:if="${pair.effectivelyBlocked}"
+                                              th:action="@{/assignments/{assignmentId}/plagiarism/pairs/{pairId}/override(assignmentId=${dashboard.assignment.id}, pairId=${pair.id})}"
+                                              method="post"
+                                              class="m-0">
+                                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                            <input type="hidden" name="decision" value="ALLOW">
+                                            <button class="inline-flex items-center gap-2 rounded-2xl bg-blue-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-800"
+                                                    type="submit">
+                                                <span class="material-symbols-outlined text-[18px]">check_circle</span>
+                                                Release Pair
+                                            </button>
+                                        </form>
+
+                                        <form th:if="${!pair.effectivelyBlocked and pair.overrideAllowed}"
+                                              th:action="@{/assignments/{assignmentId}/plagiarism/pairs/{pairId}/override(assignmentId=${dashboard.assignment.id}, pairId=${pair.id})}"
+                                              method="post"
+                                              class="m-0">
+                                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                            <input type="hidden" name="decision" value="BLOCK">
+                                            <button class="inline-flex items-center gap-2 rounded-2xl border border-stone-300 bg-white px-4 py-2.5 text-sm font-semibold text-stone-700 transition hover:border-rose-300 hover:bg-rose-50 hover:text-rose-700"
+                                                    type="submit">
+                                                <span class="material-symbols-outlined text-[18px]">gpp_bad</span>
+                                                Block Again
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </article>
+                        </div>
+
+                        <div class="px-6 py-10 text-center text-sm text-stone-500" th:if="${#lists.isEmpty(dashboard.pairs)}">
+                            No pairwise result is available yet.
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+</div>
+</body>
+</html>

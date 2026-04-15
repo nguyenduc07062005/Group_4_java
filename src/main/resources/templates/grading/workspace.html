@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Grading Workspace')}"></head>
+<body class="bg-white text-stone-950">
+<div class="min-h-screen">
+    <header th:replace="~{fragments/header :: header}"></header>
+
+    <main class="mx-auto max-w-[1680px] px-4 py-6 lg:px-6">
+        <div th:replace="~{fragments/alerts :: alerts}"></div>
+
+        <section class="rounded-[30px] border border-stone-200 bg-white shadow-[0_18px_40px_rgba(28,25,23,0.06)]">
+            <div class="border-b border-stone-100 bg-gradient-to-r from-[#002366] via-[#0047A6] to-[#A52E01] px-6 py-6 text-white lg:px-8">
+                <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+                    <div class="min-w-0 max-w-4xl">
+                        <div class="mb-3 flex flex-wrap items-center gap-2 text-[0.72rem] uppercase tracking-[0.24em] text-blue-100/80">
+                            <a class="transition hover:text-white" th:href="@{/dashboard}">Dashboard</a>
+                            <span>/</span>
+                            <a class="transition hover:text-white" th:href="@{/semesters}">Semester Board</a>
+                            <span>/</span>
+                            <a class="transition hover:text-white"
+                               th:href="@{/semesters/{id}(id=${gradingWorkspace.assignment.semester.id})}"
+                               th:text="${gradingWorkspace.assignment.semester.code}">SP26</a>
+                            <span>/</span>
+                            <a class="transition hover:text-white"
+                               th:href="@{/assignments/{id}(id=${gradingWorkspace.assignment.id})}"
+                               th:text="${gradingWorkspace.assignment.assignmentName}">Midterm</a>
+                            <span>/</span>
+                            <span>Grading Workspace</span>
+                        </div>
+                        <h1 class="font-['DM_Serif_Display'] text-4xl leading-none tracking-[-0.04em] lg:text-[3.25rem]">Grading Workspace</h1>
+                        <p class="mt-4 max-w-3xl text-sm leading-6 text-blue-50/88"
+                           th:text="${gradingWorkspace.assignment.course.courseCode + ' - ' + gradingWorkspace.assignment.course.courseName + ' | snapshot, grading results, and report export in one place'}">
+                            PR1 - Programming 1 | snapshot, grading results, and report export in one place
+                        </p>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-2">
+                        <a class="inline-flex items-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/16"
+                           th:href="@{/assignments/{id}(id=${gradingWorkspace.assignment.id})}">
+                            <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+                            Assignment Setup
+                        </a>
+                        <button class="inline-flex items-center gap-2 rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-[#002366] transition hover:bg-blue-50"
+                                type="button"
+                                onclick="window.print()">
+                            <span class="material-symbols-outlined text-[18px]">print</span>
+                            Print Current View
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid gap-6 px-4 py-5 lg:grid-cols-[220px_minmax(0,1fr)] lg:px-6 lg:py-6">
+                <aside class="lg:sticky lg:top-24 lg:self-start">
+                    <div th:replace="~{fragments/workspace-nav :: assignmentStages(${gradingWorkspace.assignment.id}, 'grading')}"></div>
+                </aside>
+
+                <div class="min-w-0 space-y-6">
+                    <section id="snapshot-run" class="overflow-hidden rounded-[24px] border border-stone-200 bg-white shadow-[0_12px_30px_rgba(28,25,23,0.04)]">
+                        <div class="border-b border-stone-100 px-6 py-5">
+                            <div class="flex flex-wrap items-center justify-between gap-4">
+                                <div>
+                                    <p class="mb-1 text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-stone-400">Snapshot And Run</p>
+                                    <h2 class="font-['DM_Serif_Display'] text-3xl leading-none tracking-[-0.03em] text-stone-900">Freeze, start, and monitor grading</h2>
+                                </div>
+                                <div class="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[0.75rem] font-medium"
+                                     th:class="${gradingWorkspace.precheck.canCreateBatch() ? 'bg-blue-50 text-blue-700' : 'bg-amber-50 text-amber-700'}">
+                                    <span class="material-symbols-outlined text-[18px]"
+                                          th:text="${gradingWorkspace.precheck.canCreateBatch() ? 'check_circle' : 'pending_actions'}">check_circle</span>
+                                    <span th:text="${gradingWorkspace.precheck.canCreateBatch() ? 'Snapshot can be created now' : 'Resolve the upstream gates first'}">Snapshot can be created now</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid gap-4 px-6 py-6 sm:grid-cols-2 xl:grid-cols-6">
+                            <div class="rounded-[22px] bg-stone-50 px-4 py-4">
+                                <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-400">Report</p>
+                                <p class="mt-2 text-lg font-semibold text-stone-900"
+                                   th:text="${gradingWorkspace.precheck.latestReport != null ? gradingWorkspace.precheck.latestReport.status : 'Missing'}">COMPLETED</p>
+                            </div>
+                            <div class="rounded-[22px] bg-blue-50 px-4 py-4">
+                                <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-blue-700/70">Gradeable</p>
+                                <p class="mt-2 text-2xl font-semibold text-blue-900" th:text="${#lists.size(gradingWorkspace.precheck.gradeableEntries)}">0</p>
+                            </div>
+                            <div class="rounded-[22px] bg-rose-50 px-4 py-4">
+                                <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-rose-700/70">Excluded</p>
+                                <p class="mt-2 text-2xl font-semibold text-rose-900" th:text="${#lists.size(gradingWorkspace.precheck.excludedEntries)}">0</p>
+                            </div>
+                            <div class="rounded-[22px] bg-stone-50 px-4 py-4">
+                                <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-400">Latest Batch</p>
+                                <p class="mt-2 text-lg font-semibold text-stone-900"
+                                   th:text="${gradingWorkspace.precheck.latestBatch != null ? gradingWorkspace.precheck.latestBatch.status : 'No snapshot yet'}">PRECHECKED</p>
+                            </div>
+                            <div class="rounded-[22px] bg-stone-50 px-4 py-4">
+                                <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-400">Workers</p>
+                                <p class="mt-2 text-2xl font-semibold text-stone-900" th:text="${gradingWorkspace.precheck.workerCount}">2</p>
+                            </div>
+                            <div class="rounded-[22px] bg-stone-50 px-4 py-4">
+                                <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-400">Stored Results</p>
+                                <p class="mt-2 text-2xl font-semibold text-stone-900" th:text="${gradingWorkspace.resultIndex.resultCount()}">0</p>
+                            </div>
+                        </div>
+
+                        <div class="border-t border-stone-100 px-6 py-5">
+                            <p class="text-sm leading-6 text-stone-500" th:unless="${gradingWorkspace.precheck.hasCompletedReport()}">
+                                Run plagiarism first. The snapshot stays locked until a completed report exists.
+                            </p>
+                            <p class="text-sm leading-6 text-stone-500" th:if="${gradingWorkspace.precheck.hasCompletedReport() and !gradingWorkspace.hasLatestBatch()}">
+                                Create the snapshot when the gradeable list looks correct. The batch will keep that list frozen even if new uploads arrive later.
+                            </p>
+                            <p class="text-sm leading-6 text-stone-500" th:if="${gradingWorkspace.hasLatestBatch()}">
+                                The latest batch stays visible here together with live progress, stored results, and export options.
+                            </p>
+
+                            <div class="mt-4 flex flex-wrap items-center gap-3">
+                                <form th:if="${gradingWorkspace.precheck.canCreateBatch()}"
+                                      th:action="@{/assignments/{assignmentId}/batches/create(assignmentId=${gradingWorkspace.assignment.id})}"
+                                      method="post"
+                                      class="m-0">
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                    <button class="inline-flex items-center gap-2 rounded-2xl bg-[#002366] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#001b4f]"
+                                            type="submit">
+                                        <span class="material-symbols-outlined text-[18px]">inventory</span>
+                                        Create Snapshot
+                                    </button>
+                                </form>
+
+                                <button th:if="${!gradingWorkspace.precheck.canCreateBatch() and !gradingWorkspace.canStartLatestBatch()}"
+                                        class="inline-flex items-center gap-2 rounded-2xl bg-stone-200 px-4 py-2.5 text-sm font-semibold text-stone-500"
+                                        type="button"
+                                        disabled>
+                                    <span class="material-symbols-outlined text-[18px]">inventory</span>
+                                    Create Snapshot
+                                </button>
+
+                                <form th:if="${gradingWorkspace.canStartLatestBatch()}"
+                                      th:action="@{/assignments/{assignmentId}/batches/{batchId}/start(assignmentId=${gradingWorkspace.assignment.id}, batchId=${gradingWorkspace.precheck.latestBatch.id})}"
+                                      method="post"
+                                      class="m-0">
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                    <button class="inline-flex items-center gap-2 rounded-2xl bg-[#347070] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#214d4a]"
+                                            type="submit">
+                                        <span class="material-symbols-outlined text-[18px]">play_arrow</span>
+                                        Start Grading
+                                    </button>
+                                </form>
+
+                                <button th:if="${!gradingWorkspace.canStartLatestBatch()}"
+                                        class="inline-flex items-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-semibold"
+                                        th:class="${gradingWorkspace.hasLatestBatch() ? 'bg-blue-50 text-blue-800' : 'bg-stone-200 text-stone-500'}"
+                                        type="button"
+                                        th:disabled="${!gradingWorkspace.hasLatestBatch()}">
+                                    <span class="material-symbols-outlined text-[18px]">play_arrow</span>
+                                    <span th:text="${gradingWorkspace.hasActiveRun() ? 'Grading In Progress' : (gradingWorkspace.hasLatestBatch() ? 'Latest Batch Ready' : 'Start Grading')}">Start Grading</span>
+                                </button>
+
+                                <a class="inline-flex items-center gap-2 rounded-2xl border border-stone-300 bg-white px-4 py-2.5 text-sm font-semibold text-stone-900 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+                                   th:if="${gradingWorkspace.hasStoredResults()}"
+                                   href="#results-overview">
+                                    <span class="material-symbols-outlined text-[18px]">monitoring</span>
+                                    View Results
+                                </a>
+                                <a class="inline-flex items-center gap-2 rounded-2xl border border-stone-300 bg-white px-4 py-2.5 text-sm font-semibold text-stone-900 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+                                   th:if="${gradingWorkspace.hasExportableOutputs()}"
+                                   href="#export-reports">
+                                    <span class="material-symbols-outlined text-[18px]">download</span>
+                                    Export Reports
+                                </a>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="grid gap-6 xl:grid-cols-2" th:if="${!gradingWorkspace.hasLatestBatch()}">
+                        <section class="overflow-hidden rounded-[24px] border border-stone-200 bg-white shadow-[0_12px_30px_rgba(28,25,23,0.04)]">
+                            <div class="border-b border-stone-100 px-6 py-5">
+                                <p class="mb-1 text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-stone-400">Gradeable Scope</p>
+                                <h2 class="font-['DM_Serif_Display'] text-3xl leading-none tracking-[-0.03em] text-stone-900">Ready for this batch</h2>
+                            </div>
+
+                            <div class="px-6 py-6">
+                                <div class="rounded-[22px] border border-dashed border-stone-300 bg-stone-50 px-5 py-10 text-center text-sm text-stone-500"
+                                     th:if="${#lists.isEmpty(gradingWorkspace.precheck.gradeableEntries)}">
+                                    No submission is fully ready for grading yet.
+                                </div>
+
+                                <div class="overflow-hidden rounded-[22px] border border-stone-200" th:if="${!#lists.isEmpty(gradingWorkspace.precheck.gradeableEntries)}">
+                                    <div class="overflow-x-auto">
+                                        <table class="min-w-full divide-y divide-stone-200 text-sm">
+                                            <thead class="bg-stone-50 text-left text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-500">
+                                            <tr>
+                                                <th class="px-4 py-3">Submission</th>
+                                                <th class="px-4 py-3">Status</th>
+                                                <th class="px-4 py-3">Reason</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody class="divide-y divide-stone-100 bg-white">
+                                            <tr th:each="entry : ${gradingWorkspace.precheck.gradeableEntries}">
+                                                <td class="px-4 py-4 font-semibold text-stone-900" th:text="${entry.submitterName}">s2210003</td>
+                                                <td class="px-4 py-4">
+                                                    <span class="inline-flex rounded-full bg-blue-50 px-3 py-1 text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-blue-700"
+                                                          th:text="${entry.currentStatus}">VALIDATED</span>
+                                                </td>
+                                                <td class="px-4 py-4 text-stone-500" th:text="${entry.reason}">Validated and cleared</td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <section class="overflow-hidden rounded-[24px] border border-stone-200 bg-white shadow-[0_12px_30px_rgba(28,25,23,0.04)]">
+                            <div class="border-b border-stone-100 px-6 py-5">
+                                <p class="mb-1 text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-stone-400">Excluded Scope</p>
+                                <h2 class="font-['DM_Serif_Display'] text-3xl leading-none tracking-[-0.03em] text-stone-900">Outside the batch</h2>
+                            </div>
+
+                            <div class="px-6 py-6">
+                                <div class="rounded-[22px] border border-dashed border-stone-300 bg-stone-50 px-5 py-10 text-center text-sm text-stone-500"
+                                     th:if="${#lists.isEmpty(gradingWorkspace.precheck.excludedEntries)}">
+                                    No submission is currently excluded by validation or plagiarism checks.
+                                </div>
+
+                                <div class="overflow-hidden rounded-[22px] border border-stone-200" th:if="${!#lists.isEmpty(gradingWorkspace.precheck.excludedEntries)}">
+                                    <div class="overflow-x-auto">
+                                        <table class="min-w-full divide-y divide-stone-200 text-sm">
+                                            <thead class="bg-stone-50 text-left text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-500">
+                                            <tr>
+                                                <th class="px-4 py-3">Submission</th>
+                                                <th class="px-4 py-3">Status</th>
+                                                <th class="px-4 py-3">Reason</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody class="divide-y divide-stone-100 bg-white">
+                                            <tr th:each="entry : ${gradingWorkspace.precheck.excludedEntries}">
+                                                <td class="px-4 py-4 font-semibold text-stone-900" th:text="${entry.submitterName}">s2210001</td>
+                                                <td class="px-4 py-4">
+                                                    <span class="inline-flex rounded-full bg-rose-50 px-3 py-1 text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-rose-700"
+                                                          th:text="${entry.currentStatus}">REJECTED</span>
+                                                </td>
+                                                <td class="px-4 py-4 text-stone-500" th:text="${entry.reason}">Flagged with s2210002</td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                    </section>
+
+                    <section class="grid gap-6 xl:grid-cols-[minmax(0,1.35fr)_minmax(280px,0.65fr)]"
+                             th:if="${gradingWorkspace.hasLatestBatch()}">
+                        <section class="overflow-hidden rounded-[24px] border border-stone-200 bg-white shadow-[0_12px_30px_rgba(28,25,23,0.04)]">
+                            <div class="border-b border-stone-100 px-6 py-5">
+                                <p class="mb-1 text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-stone-400">Frozen Snapshot</p>
+                                <h2 class="font-['DM_Serif_Display'] text-3xl leading-none tracking-[-0.03em] text-stone-900">Submissions locked into this run</h2>
+                            </div>
+
+                            <div class="px-6 py-6">
+                                <div class="rounded-[22px] border border-dashed border-stone-300 bg-stone-50 px-5 py-10 text-center text-sm text-stone-500"
+                                     th:if="${!gradingWorkspace.hasLatestProgress() and #lists.isEmpty(gradingWorkspace.resultIndex.results)}">
+                                    The snapshot exists, but no grading rows are visible yet.
+                                </div>
+
+                                <div class="overflow-hidden rounded-[22px] border border-stone-200" th:if="${gradingWorkspace.hasLatestProgress() and !#lists.isEmpty(gradingWorkspace.latestProgress.submissions)}">
+                                    <div class="overflow-x-auto">
+                                        <table class="min-w-full divide-y divide-stone-200 text-sm">
+                                            <thead class="bg-stone-50 text-left text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-500">
+                                            <tr>
+                                                <th class="px-4 py-3">Submitter</th>
+                                                <th class="px-4 py-3">Status</th>
+                                                <th class="px-4 py-3">Score</th>
+                                                <th class="px-4 py-3">Testcases</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody class="divide-y divide-stone-100 bg-white">
+                                            <tr th:each="entry : ${gradingWorkspace.latestProgress.submissions}">
+                                                <td class="px-4 py-4 font-semibold text-stone-900" th:text="${entry.submitterName}">s2212001</td>
+                                                <td class="px-4 py-4">
+                                                    <span class="inline-flex rounded-full px-3 py-1 text-[0.72rem] font-semibold uppercase tracking-[0.16em]"
+                                                          th:classappend="${entry.status == 'DONE' ? ' bg-blue-50 text-blue-700' : (entry.status == 'PENDING' or entry.status == 'RUNNING' ? ' bg-amber-50 text-amber-700' : ' bg-rose-50 text-rose-700')}"
+                                                          th:text="${entry.status}">DONE</span>
+                                                </td>
+                                                <td class="px-4 py-4 text-stone-600" th:text="${entry.totalScore + ' / ' + entry.maxScore}">10.00 / 10.00</td>
+                                                <td class="px-4 py-4 text-stone-600" th:text="${entry.testcasePassedCount + ' / ' + entry.testcaseTotalCount}">1 / 1</td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <div class="overflow-hidden rounded-[22px] border border-stone-200" th:if="${!gradingWorkspace.hasLatestProgress() and !#lists.isEmpty(gradingWorkspace.resultIndex.results)}">
+                                    <div class="overflow-x-auto">
+                                        <table class="min-w-full divide-y divide-stone-200 text-sm">
+                                            <thead class="bg-stone-50 text-left text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-500">
+                                            <tr>
+                                                <th class="px-4 py-3">Submitter</th>
+                                                <th class="px-4 py-3">Status</th>
+                                                <th class="px-4 py-3">Score</th>
+                                                <th class="px-4 py-3">Testcases</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody class="divide-y divide-stone-100 bg-white">
+                                            <tr th:each="entry : ${gradingWorkspace.resultIndex.results}">
+                                                <td class="px-4 py-4 font-semibold text-stone-900" th:text="${entry.submitterName}">s2212001</td>
+                                                <td class="px-4 py-4">
+                                                    <span class="inline-flex rounded-full px-3 py-1 text-[0.72rem] font-semibold uppercase tracking-[0.16em]"
+                                                          th:classappend="${entry.status == 'DONE' ? ' bg-blue-50 text-blue-700' : (entry.status == 'PENDING' or entry.status == 'RUNNING' ? ' bg-amber-50 text-amber-700' : ' bg-rose-50 text-rose-700')}"
+                                                          th:text="${entry.status}">DONE</span>
+                                                </td>
+                                                <td class="px-4 py-4 text-stone-600" th:text="${entry.totalScore + ' / ' + entry.maxScore}">10.00 / 10.00</td>
+                                                <td class="px-4 py-4 text-stone-600" th:text="${entry.testcasePassedCount + ' / ' + entry.testcaseTotalCount}">1 / 1</td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                    </section>
+
+                    <section id="batch-progress" class="overflow-hidden rounded-[24px] border border-stone-200 bg-white shadow-[0_12px_30px_rgba(28,25,23,0.04)]"
+                             th:if="${gradingWorkspace.hasLatestProgress()}">
+                        <div class="border-b border-stone-100 px-6 py-5">
+                            <div class="flex flex-wrap items-center justify-between gap-4">
+                                <div>
+                                    <p class="mb-1 text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-stone-400">Batch Progress</p>
+                                    <h2 class="font-['DM_Serif_Display'] text-3xl leading-none tracking-[-0.03em] text-stone-900">Latest batch snapshot</h2>
+                                </div>
+                                <div class="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[0.75rem] font-medium"
+                                     th:class="${gradingWorkspace.hasActiveRun() ? 'bg-amber-50 text-amber-700' : 'bg-blue-50 text-blue-700'}">
+                                    <span class="material-symbols-outlined text-[18px]"
+                                          th:text="${gradingWorkspace.hasActiveRun() ? 'autorenew' : 'check_circle'}">autorenew</span>
+                                    <span th:text="${gradingWorkspace.hasActiveRun() ? 'Live run in progress' : 'Batch reached a terminal state'}">Live run in progress</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid gap-4 px-6 py-6 sm:grid-cols-2 xl:grid-cols-5">
+                            <div class="rounded-[22px] bg-stone-50 px-4 py-4">
+                                <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-400">Status</p>
+                                <p class="mt-2 text-lg font-semibold text-stone-900" th:text="${gradingWorkspace.latestProgress.batch.status}">RUNNING</p>
+                            </div>
+                            <div class="rounded-[22px] bg-stone-50 px-4 py-4">
+                                <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-400">Pending</p>
+                                <p class="mt-2 text-2xl font-semibold text-stone-900" th:text="${gradingWorkspace.latestProgress.pendingCount}">0</p>
+                            </div>
+                            <div class="rounded-[22px] bg-amber-50 px-4 py-4">
+                                <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-amber-700/70">Running</p>
+                                <p class="mt-2 text-2xl font-semibold text-amber-900" th:text="${gradingWorkspace.latestProgress.runningCount}">0</p>
+                            </div>
+                            <div class="rounded-[22px] bg-blue-50 px-4 py-4">
+                                <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-blue-700/70">Completed</p>
+                                <p class="mt-2 text-2xl font-semibold text-blue-900" th:text="${gradingWorkspace.latestProgress.completedCount}">0</p>
+                            </div>
+                            <div class="rounded-[22px] bg-rose-50 px-4 py-4">
+                                <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-rose-700/70">Failures</p>
+                                <p class="mt-2 text-2xl font-semibold text-rose-900" th:text="${gradingWorkspace.latestProgress.terminalFailureCount}">0</p>
+                            </div>
+                        </div>
+
+                        <div class="px-6 pb-6">
+                            <div class="rounded-[22px] bg-stone-50 px-5 py-5">
+                                <div class="mb-3 flex items-center justify-between gap-3 text-sm">
+                                    <span class="font-medium text-stone-600">Completion</span>
+                                    <span class="font-semibold text-stone-900"
+                                          th:text="${gradingWorkspace.latestProgress.completedCount + ' / ' + gradingWorkspace.latestProgress.batch.gradeableSubmissionCount}">0 / 0</span>
+                                </div>
+                                <div class="h-3 rounded-full bg-stone-200">
+                                    <div class="h-3 rounded-full bg-blue-600 transition-all"
+                                         th:style="|width:${gradingWorkspace.latestProgress.batch.gradeableSubmissionCount > 0 ? gradingWorkspace.latestProgress.completedCount * 100 / gradingWorkspace.latestProgress.batch.gradeableSubmissionCount : 0}%|"></div>
+                                </div>
+                            </div>
+
+                            <div class="mt-4 overflow-hidden rounded-[22px] border border-stone-200" th:if="${!#lists.isEmpty(gradingWorkspace.latestProgress.submissions)}">
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-full divide-y divide-stone-200 text-sm">
+                                        <thead class="bg-stone-50 text-left text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-500">
+                                        <tr>
+                                            <th class="px-4 py-3">Submitter</th>
+                                            <th class="px-4 py-3">Status</th>
+                                            <th class="px-4 py-3">Score</th>
+                                            <th class="px-4 py-3">Testcases</th>
+                                            <th class="px-4 py-3">Completed At</th>
+                                            <th class="px-4 py-3">Action</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-stone-100 bg-white">
+                                        <tr th:each="entry : ${gradingWorkspace.latestProgress.submissions}">
+                                            <td class="px-4 py-4 font-semibold text-stone-900" th:text="${entry.submitterName}">s2212001</td>
+                                            <td class="px-4 py-4">
+                                                <span class="inline-flex rounded-full px-3 py-1 text-[0.72rem] font-semibold uppercase tracking-[0.16em]"
+                                                      th:classappend="${entry.status == 'DONE' ? ' bg-blue-50 text-blue-700' : (entry.status == 'PENDING' or entry.status == 'RUNNING' ? ' bg-amber-50 text-amber-700' : ' bg-rose-50 text-rose-700')}"
+                                                      th:text="${entry.status}">DONE</span>
+                                            </td>
+                                            <td class="px-4 py-4 text-stone-600" th:text="${entry.totalScore + ' / ' + entry.maxScore}">10.00 / 10.00</td>
+                                            <td class="px-4 py-4 text-stone-600" th:text="${entry.testcasePassedCount + ' / ' + entry.testcaseTotalCount}">1 / 1</td>
+                                            <td class="px-4 py-4 text-stone-500" th:text="${entry.completedAt != null ? entry.completedAt : 'Pending'}">Pending</td>
+                                            <td class="px-4 py-4">
+                                                <a class="inline-flex items-center gap-2 rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm font-medium text-stone-700 transition hover:border-blue-500 hover:text-blue-700"
+                                                   th:href="|/assignments/${gradingWorkspace.assignment.id}/grading?resultId=${entry.resultId}#result-detail|">
+                                                    <span class="material-symbols-outlined text-[18px]">arrow_outward</span>
+                                                    Open Detail
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section id="results-overview" class="overflow-hidden rounded-[24px] border border-stone-200 bg-white shadow-[0_12px_30px_rgba(28,25,23,0.04)]">
+                        <div class="border-b border-stone-100 px-6 py-5">
+                            <div class="flex flex-wrap items-center justify-between gap-4">
+                                <div>
+                                    <p class="mb-1 text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-stone-400">Results</p>
+                                    <h2 class="font-['DM_Serif_Display'] text-3xl leading-none tracking-[-0.03em] text-stone-900">Stored grading output</h2>
+                                </div>
+                                <span class="inline-flex items-center gap-2 rounded-full bg-stone-100 px-3 py-1.5 text-[0.75rem] font-medium text-stone-600">
+                                    <span class="material-symbols-outlined text-[18px]">receipt_long</span>
+                                    <span th:text="${gradingWorkspace.resultIndex.resultCount() + ' row(s)'}">0 row(s)</span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="px-6 py-6">
+                            <div class="rounded-[22px] border border-dashed border-stone-300 bg-stone-50 px-5 py-10 text-center text-sm text-stone-500"
+                                 th:if="${#lists.isEmpty(gradingWorkspace.resultIndex.results)}">
+                                Results appear here after the latest batch starts persisting grading rows.
+                            </div>
+
+                            <div class="overflow-hidden rounded-[22px] border border-stone-200" th:if="${!#lists.isEmpty(gradingWorkspace.resultIndex.results)}">
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-full divide-y divide-stone-200 text-sm">
+                                        <thead class="bg-stone-50 text-left text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-500">
+                                        <tr>
+                                            <th class="px-4 py-3">Submitter</th>
+                                            <th class="px-4 py-3">Status</th>
+                                            <th class="px-4 py-3">Total Score</th>
+                                            <th class="px-4 py-3">Logic / OOP</th>
+                                            <th class="px-4 py-3">Testcases</th>
+                                            <th class="px-4 py-3">Action</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-stone-100 bg-white">
+                                        <tr th:each="entry : ${gradingWorkspace.resultIndex.results}"
+                                            th:classappend="${gradingWorkspace.selectedResultId == entry.resultId ? ' bg-blue-50/40' : ''}">
+                                            <td class="px-4 py-4 font-semibold text-stone-900" th:text="${entry.submitterName}">s2212001</td>
+                                            <td class="px-4 py-4">
+                                                <span class="inline-flex rounded-full px-3 py-1 text-[0.72rem] font-semibold uppercase tracking-[0.16em]"
+                                                      th:classappend="${entry.status == 'DONE' ? ' bg-blue-50 text-blue-700' : (entry.status == 'PENDING' or entry.status == 'RUNNING' ? ' bg-amber-50 text-amber-700' : ' bg-rose-50 text-rose-700')}"
+                                                      th:text="${entry.status}">DONE</span>
+                                            </td>
+                                            <td class="px-4 py-4 text-stone-600" th:text="${entry.totalScore + ' / ' + entry.maxScore}">10.00 / 10.00</td>
+                                            <td class="px-4 py-4 text-stone-600" th:text="${entry.logicScore + ' / ' + entry.oopScore}">10.00 / 0.00</td>
+                                            <td class="px-4 py-4 text-stone-600" th:text="${entry.testcasePassedCount + ' / ' + entry.testcaseTotalCount}">1 / 1</td>
+                                            <td class="px-4 py-4">
+                                                <a class="inline-flex items-center gap-2 rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm font-medium text-stone-700 transition hover:border-blue-500 hover:text-blue-700"
+                                                   th:href="|/assignments/${gradingWorkspace.assignment.id}/grading?resultId=${entry.resultId}#result-detail|">
+                                                    <span class="material-symbols-outlined text-[18px]">arrow_outward</span>
+                                                    Open Detail
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section id="result-detail" class="overflow-hidden rounded-[24px] border border-stone-200 bg-white shadow-[0_12px_30px_rgba(28,25,23,0.04)]"
+                             th:if="${gradingWorkspace.hasSelectedResultDetail()}">
+                        <div class="border-b border-stone-100 px-6 py-5">
+                            <div class="flex flex-wrap items-center justify-between gap-4">
+                                <div>
+                                    <p class="mb-1 text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-stone-400">Selected Submitter</p>
+                                    <h2 class="font-['DM_Serif_Display'] text-3xl leading-none tracking-[-0.03em] text-stone-900"
+                                        th:text="${gradingWorkspace.selectedResultDetail.submission.submitterName}">s2212001</h2>
+                                </div>
+                                <span class="inline-flex rounded-full px-3 py-1.5 text-[0.75rem] font-medium"
+                                      th:classappend="${gradingWorkspace.selectedResultDetail.result.status == 'DONE' ? ' bg-blue-50 text-blue-700' : (gradingWorkspace.selectedResultDetail.result.status == 'PENDING' or gradingWorkspace.selectedResultDetail.result.status == 'RUNNING' ? ' bg-amber-50 text-amber-700' : ' bg-rose-50 text-rose-700')}"
+                                      th:text="${gradingWorkspace.selectedResultDetail.result.status}">DONE</span>
+                            </div>
+                        </div>
+
+                        <div class="space-y-8 px-6 py-6">
+                            <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+                                <div class="rounded-[22px] bg-stone-50 px-4 py-4">
+                                    <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-400">Total Score</p>
+                                    <p class="mt-2 text-lg font-semibold text-stone-900"
+                                       th:text="${gradingWorkspace.selectedResultDetail.result.totalScore + ' / ' + gradingWorkspace.selectedResultDetail.result.maxScore}">10.00 / 10.00</p>
+                                </div>
+                                <div class="rounded-[22px] bg-stone-50 px-4 py-4">
+                                    <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-400">Logic</p>
+                                    <p class="mt-2 text-lg font-semibold text-stone-900" th:text="${gradingWorkspace.selectedResultDetail.result.logicScore}">10.00</p>
+                                </div>
+                            <div class="rounded-[22px] bg-stone-50 px-4 py-4" th:if="${gradingWorkspace.assignment.oopMode}">
+                                    <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-400">OOP</p>
+                                    <p class="mt-2 text-lg font-semibold text-stone-900" th:text="${gradingWorkspace.selectedResultDetail.result.oopScore}">0.00</p>
+                                </div>
+                                <div class="rounded-[22px] bg-stone-50 px-4 py-4">
+                                    <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-400">Testcases</p>
+                                    <p class="mt-2 text-lg font-semibold text-stone-900"
+                                       th:text="${gradingWorkspace.selectedResultDetail.result.testcasePassedCount + ' / ' + gradingWorkspace.selectedResultDetail.result.testcaseTotalCount}">1 / 1</p>
+                                </div>
+                                <div class="rounded-[22px] bg-stone-50 px-4 py-4">
+                                    <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-400">Batch</p>
+                                    <p class="mt-2 text-lg font-semibold text-stone-900"
+                                       th:text="${'Batch #' + gradingWorkspace.selectedResultDetail.batch.id}">Batch #12</p>
+                                </div>
+                            </div>
+
+                            <div class="grid gap-6 xl:grid-cols-2">
+                                <article class="overflow-hidden rounded-[22px] border border-stone-200 bg-stone-50">
+                                    <div class="border-b border-stone-200 px-5 py-4">
+                                        <p class="mb-1 text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-stone-400">Compile Log</p>
+                                        <h3 class="text-xl font-semibold text-stone-900">Compiler output</h3>
+                                    </div>
+                                    <pre class="overflow-x-auto bg-stone-950 px-5 py-5 text-sm leading-7 text-blue-100"
+                                         th:text="${gradingWorkspace.selectedResultDetail.result.compileLog != null ? gradingWorkspace.selectedResultDetail.result.compileLog : 'No compile log available.'}">Compilation succeeded.</pre>
+                                </article>
+
+                                <article class="overflow-hidden rounded-[22px] border border-stone-200 bg-stone-50">
+                                    <div class="border-b border-stone-200 px-5 py-4">
+                                        <p class="mb-1 text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-stone-400">Execution Log</p>
+                                        <h3 class="text-xl font-semibold text-stone-900">Runtime output</h3>
+                                    </div>
+                                    <pre class="overflow-x-auto bg-stone-950 px-5 py-5 text-sm leading-7 text-blue-100"
+                                         th:text="${gradingWorkspace.selectedResultDetail.result.executionLog != null ? gradingWorkspace.selectedResultDetail.result.executionLog : 'No execution log available.'}">Execution log</pre>
+                                </article>
+                            </div>
+
+                            <div class="space-y-5 border-t border-stone-100 pt-2">
+                                <div class="px-1 pt-4">
+                                    <p class="mb-1 text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-stone-400">Testcase Breakdown</p>
+                                    <h3 class="text-2xl font-semibold text-stone-900">Evidence by assignment</h3>
+                                </div>
+
+                                <div class="space-y-6" th:each="problem : ${gradingWorkspace.selectedResultDetail.problemResults}">
+                                    <article class="rounded-[22px] bg-stone-50 px-5 py-5">
+                                        <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                                            <div>
+                                                <h4 class="text-lg font-semibold text-stone-900" th:text="${problem.title}">Assignment question</h4>
+                                                <p class="mt-2 text-sm text-stone-500"
+                                                   th:text="${problem.status + ' | ' + problem.earnedScore + ' / ' + problem.maxScore + ' | ' + problem.testcasePassedCount + '/' + problem.testcaseTotalCount + ' testcase(s)'}">DONE | 10.00 / 10.00</p>
+                                            </div>
+                                            <span class="inline-flex rounded-full px-3 py-1 text-[0.72rem] font-semibold uppercase tracking-[0.16em]"
+                                                  th:classappend="${problem.status == 'DONE' ? ' bg-blue-50 text-blue-700' : ' bg-rose-50 text-rose-700'}"
+                                                  th:text="${problem.status}">DONE</span>
+                                        </div>
+
+                                        <div class="mt-5 overflow-hidden rounded-[18px] border border-stone-200 bg-white" th:if="${!#lists.isEmpty(problem.testCases)}">
+                                            <div class="overflow-x-auto">
+                                                <table class="min-w-full divide-y divide-stone-200 text-sm">
+                                                    <thead class="bg-stone-50 text-left text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-500">
+                                                    <tr>
+                                                        <th class="px-4 py-3">Case</th>
+                                                        <th class="px-4 py-3">Status</th>
+                                                        <th class="px-4 py-3">Score</th>
+                                                        <th class="px-4 py-3">Expected</th>
+                                                        <th class="px-4 py-3">Actual</th>
+                                                        <th class="px-4 py-3">Message</th>
+                                                    </tr>
+                                                    </thead>
+                                                    <tbody class="divide-y divide-stone-100 bg-white">
+                                                    <tr th:each="testCase : ${problem.testCases}">
+                                                        <td class="px-4 py-4 font-semibold text-stone-900" th:text="${testCase.caseOrder}">1</td>
+                                                        <td class="px-4 py-4">
+                                                            <span class="inline-flex rounded-full px-3 py-1 text-[0.72rem] font-semibold uppercase tracking-[0.16em]"
+                                                                  th:classappend="${testCase.passed ? ' bg-blue-50 text-blue-700' : ' bg-rose-50 text-rose-700'}"
+                                                                  th:text="${testCase.status}">PASSED</span>
+                                                        </td>
+                                                        <td class="px-4 py-4 text-stone-600" th:text="${testCase.earnedScore}">10.00</td>
+                                                        <td class="px-4 py-4 text-stone-500" th:text="${#strings.abbreviate(testCase.expectedOutput, 60)}">3</td>
+                                                        <td class="px-4 py-4 text-stone-500" th:text="${#strings.abbreviate(testCase.actualOutput, 60)}">3</td>
+                                                        <td class="px-4 py-4 text-stone-500" th:text="${testCase.message}">Output matched expected result.</td>
+                                                    </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </article>
+                                </div>
+                            </div>
+
+                            <div class="space-y-4 border-t border-stone-100 pt-2"
+                                 th:if="${!#lists.isEmpty(gradingWorkspace.selectedResultDetail.oopRuleResults)}">
+                                <div class="px-1 pt-4">
+                                    <p class="mb-1 text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-stone-400">OOP Rule Evaluation</p>
+                                    <h3 class="text-2xl font-semibold text-stone-900">Rule checks</h3>
+                                </div>
+
+                                <div class="overflow-hidden rounded-[22px] border border-stone-200 bg-white">
+                                    <div class="overflow-x-auto">
+                                        <table class="min-w-full divide-y divide-stone-200 text-sm">
+                                            <thead class="bg-stone-50 text-left text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-500">
+                                            <tr>
+                                                <th class="px-4 py-3">Rule</th>
+                                                <th class="px-4 py-3">Status</th>
+                                                <th class="px-4 py-3">Message</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody class="divide-y divide-stone-100 bg-white">
+                                            <tr th:each="rule : ${gradingWorkspace.selectedResultDetail.oopRuleResults}">
+                                                <td class="px-4 py-4 font-semibold text-stone-900" th:text="${rule.ruleLabel}">Uses inheritance</td>
+                                                <td class="px-4 py-4">
+                                                    <span class="inline-flex rounded-full px-3 py-1 text-[0.72rem] font-semibold uppercase tracking-[0.16em]"
+                                                          th:classappend="${rule.passed ? ' bg-blue-50 text-blue-700' : ' bg-rose-50 text-rose-700'}"
+                                                          th:text="${rule.passed ? 'PASSED' : 'FAILED'}">PASSED</span>
+                                                </td>
+                                                <td class="px-4 py-4 text-stone-500" th:text="${rule.message}">Detected keyword</td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section id="export-reports" class="overflow-hidden rounded-[24px] border border-stone-200 bg-white shadow-[0_12px_30px_rgba(28,25,23,0.04)]">
+                        <div class="border-b border-stone-100 px-6 py-5">
+                            <div class="flex flex-wrap items-center justify-between gap-4">
+                                <div>
+                                    <p class="mb-1 text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-stone-400">Export And Print</p>
+                                    <h2 class="font-['DM_Serif_Display'] text-3xl leading-none tracking-[-0.03em] text-stone-900">Teacher-facing outputs</h2>
+                                </div>
+                                <span class="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[0.75rem] font-medium"
+                                      th:class="${gradingWorkspace.hasExportableOutputs() ? 'bg-blue-50 text-blue-700' : 'bg-amber-50 text-amber-700'}">
+                                <span class="material-symbols-outlined text-[18px]"
+                                          th:text="${gradingWorkspace.hasExportableOutputs() ? 'check_circle' : 'pending_actions'}">check_circle</span>
+                                    <span th:text="${gradingWorkspace.hasExportableOutputs() ? 'Exports are ready from the latest completed batch' : 'Wait for a completed batch before exporting reports'}">Exports are ready from the latest completed batch</span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="grid gap-6 px-6 py-6 md:grid-cols-2 xl:grid-cols-3">
+                            <article class="rounded-[22px] border border-stone-200 bg-stone-50 px-5 py-5">
+                                <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-400">Gradebook CSV</p>
+                                <h3 class="mt-2 text-xl font-semibold text-stone-950">Final score sheet</h3>
+                                <p class="mt-3 text-sm leading-6 text-stone-600">One row per submission with final score and testcase totals.</p>
+                                <a th:if="${gradingWorkspace.hasExportableOutputs()}"
+                                   class="mt-5 inline-flex items-center gap-2 rounded-2xl bg-blue-700 px-4 py-3 text-sm font-semibold text-white transition hover:bg-blue-800"
+                                   th:href="@{/assignments/{assignmentId}/reports/gradebook.csv(assignmentId=${gradingWorkspace.assignment.id})}">
+                                    <span class="material-symbols-outlined text-[18px]">download</span>
+                                    Download Gradebook
+                                </a>
+                                <button th:unless="${gradingWorkspace.hasExportableOutputs()}"
+                                        class="mt-5 inline-flex items-center gap-2 rounded-2xl bg-stone-200 px-4 py-3 text-sm font-semibold text-stone-500"
+                                        type="button"
+                                        disabled>
+                                    <span class="material-symbols-outlined text-[18px]">schedule</span>
+                                    Available After Completion
+                                </button>
+                            </article>
+
+                            <article class="rounded-[22px] border border-stone-200 bg-stone-50 px-5 py-5">
+                                <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-400">Detail CSV</p>
+                                <h3 class="mt-2 text-xl font-semibold text-stone-950">Audit evidence</h3>
+                                <p class="mt-3 text-sm leading-6 text-stone-600">Expanded testcase-level evidence with expected and actual output.</p>
+                                <a th:if="${gradingWorkspace.hasExportableOutputs()}"
+                                   class="mt-5 inline-flex items-center gap-2 rounded-2xl bg-blue-700 px-4 py-3 text-sm font-semibold text-white transition hover:bg-blue-800"
+                                   th:href="@{/assignments/{assignmentId}/reports/detail.csv(assignmentId=${gradingWorkspace.assignment.id})}">
+                                    <span class="material-symbols-outlined text-[18px]">download</span>
+                                    Download Detail CSV
+                                </a>
+                                <button th:unless="${gradingWorkspace.hasExportableOutputs()}"
+                                        class="mt-5 inline-flex items-center gap-2 rounded-2xl bg-stone-200 px-4 py-3 text-sm font-semibold text-stone-500"
+                                        type="button"
+                                        disabled>
+                                    <span class="material-symbols-outlined text-[18px]">schedule</span>
+                                    Available After Completion
+                                </button>
+                            </article>
+
+                            <article class="rounded-[22px] border border-stone-200 bg-stone-50 px-5 py-5">
+                                <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-400">PDF Summary</p>
+                                <h3 class="mt-2 text-xl font-semibold text-stone-950">Presentation-ready sheet</h3>
+                                <p class="mt-3 text-sm leading-6 text-stone-600">Compact teacher-facing report for presentation, printing, or handoff.</p>
+                                <a th:if="${gradingWorkspace.hasExportableOutputs()}"
+                                   class="mt-5 inline-flex items-center gap-2 rounded-2xl bg-blue-700 px-4 py-3 text-sm font-semibold text-white transition hover:bg-blue-800"
+                                   th:href="@{/assignments/{assignmentId}/reports/summary.pdf(assignmentId=${gradingWorkspace.assignment.id})}">
+                                    <span class="material-symbols-outlined text-[18px]">download</span>
+                                    Download PDF Summary
+                                </a>
+                                <button th:unless="${gradingWorkspace.hasExportableOutputs()}"
+                                        class="mt-5 inline-flex items-center gap-2 rounded-2xl bg-stone-200 px-4 py-3 text-sm font-semibold text-stone-500"
+                                        type="button"
+                                        disabled>
+                                    <span class="material-symbols-outlined text-[18px]">schedule</span>
+                                    Available After Completion
+                                </button>
+                            </article>
+
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+</div>
+
+<script th:if="${gradingWorkspace.hasActiveRun()}">
+    window.setTimeout(function () {
+        window.location.reload();
+    }, 2000);
+</script>
+</body>
+</html>

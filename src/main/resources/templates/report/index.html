@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Reports')}"></head>
+<body class="bg-white text-stone-950">
+<div class="min-h-screen">
+    <header th:replace="~{fragments/header :: header}"></header>
+
+    <main class="mx-auto max-w-[1680px] px-4 py-6 lg:px-6">
+        <div th:replace="~{fragments/alerts :: alerts}"></div>
+
+        <section class="rounded-[30px] border border-stone-200 bg-white shadow-[0_18px_40px_rgba(28,25,23,0.06)]">
+            <div class="border-b border-stone-100 bg-gradient-to-r from-[#002366] via-[#11534a] to-[#0f766e] px-6 py-6 text-white lg:px-8">
+                <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+                    <div class="min-w-0 max-w-4xl">
+                        <div class="mb-3 flex flex-wrap items-center gap-2 text-[0.72rem] uppercase tracking-[0.24em] text-blue-100/80">
+                            <a class="transition hover:text-white" th:href="@{/dashboard}">Dashboard</a>
+                            <span>/</span>
+                            <a class="transition hover:text-white" th:href="@{/semesters}">Semester Board</a>
+                            <span>/</span>
+                            <a class="transition hover:text-white" th:href="@{/semesters/{id}(id=${reportIndex.assignment.semester.id})}" th:text="${reportIndex.assignment.semester.code}">SP26</a>
+                            <span>/</span>
+                            <a class="transition hover:text-white" th:href="@{/assignments/{id}(id=${reportIndex.assignment.id})}" th:text="${reportIndex.assignment.assignmentName}">Week 3</a>
+                            <span>/</span>
+                            <span>Reports</span>
+                        </div>
+                        <h1 class="font-['DM_Serif_Display'] text-4xl leading-none tracking-[-0.04em] lg:text-[3.25rem]">Reports</h1>
+                        <p class="mt-4 max-w-3xl text-sm leading-6 text-blue-50/88"
+                           th:text="${reportIndex.assignment.assignmentName + ' | export grading evidence for teachers'}">
+                            Week 3 | export grading evidence for teachers
+                        </p>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-2">
+                        <a class="inline-flex items-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/16"
+                           th:href="@{/assignments/{id}(id=${reportIndex.assignment.id})}">
+                            <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+                            Assignment Setup
+                        </a>
+                        <a class="inline-flex items-center gap-2 rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-[#002366] transition hover:bg-blue-50"
+                           th:href="@{/assignments/{assignmentId}/results(assignmentId=${reportIndex.assignment.id})}">
+                            <span class="material-symbols-outlined text-[18px]">lab_profile</span>
+                            Results
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid gap-6 px-4 py-5 lg:grid-cols-[220px_minmax(0,1fr)_320px] lg:px-6 lg:py-6">
+                <aside class="lg:sticky lg:top-24 lg:self-start">
+                    <div th:replace="~{fragments/workspace-nav :: assignmentStages(${reportIndex.assignment.id}, 'reports')}"></div>
+                </aside>
+
+                <div class="min-w-0 space-y-6">
+                    <section class="overflow-hidden rounded-[24px] border border-stone-200 bg-white shadow-[0_12px_30px_rgba(28,25,23,0.04)]">
+                        <div class="border-b border-stone-100 px-6 py-5">
+                            <div class="flex flex-wrap items-center justify-between gap-4">
+                                <div>
+                                    <p class="mb-1 text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-stone-400">Export Summary</p>
+                                    <h2 class="font-['DM_Serif_Display'] text-3xl leading-none tracking-[-0.03em] text-stone-900">Teacher-facing outputs</h2>
+                                </div>
+                                <div class="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[0.75rem] font-medium"
+                                     th:class="${reportIndex.hasLatestBatch() ? 'bg-blue-50 text-blue-700' : 'bg-amber-50 text-amber-700'}">
+                                    <span class="material-symbols-outlined text-[18px]"
+                                          th:text="${reportIndex.hasLatestBatch() ? 'check_circle' : 'pending_actions'}">check_circle</span>
+                                    <span th:text="${reportIndex.hasLatestBatch() ? 'Reports are ready to export' : 'Run a batch first to generate report content'}">Reports are ready to export</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid gap-4 px-6 py-6 sm:grid-cols-3">
+                            <div class="rounded-[22px] bg-stone-50 px-4 py-4">
+                                <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-400">Latest Batch</p>
+                                <p class="mt-2 text-lg font-semibold text-stone-900" th:text="${reportIndex.hasLatestBatch() ? reportIndex.latestBatch.status : 'No batch yet'}">COMPLETED</p>
+                            </div>
+                            <div class="rounded-[22px] bg-stone-50 px-4 py-4">
+                                <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-400">Stored Results</p>
+                                <p class="mt-2 text-2xl font-semibold text-stone-900" th:text="${reportIndex.resultCount()}">0</p>
+                            </div>
+                            <div class="rounded-[22px] bg-stone-50 px-4 py-4">
+                                <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-400">Completed At</p>
+                                <p class="mt-2 text-sm font-semibold text-stone-900"
+                                   th:text="${reportIndex.hasLatestBatch() and reportIndex.latestBatch.completedAt != null ? reportIndex.latestBatch.completedAt : 'Pending'}">Pending</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="grid gap-6 xl:grid-cols-3">
+                        <article class="overflow-hidden rounded-[24px] border border-stone-200 bg-white shadow-[0_12px_30px_rgba(28,25,23,0.04)]">
+                            <div class="border-b border-stone-100 px-6 py-5">
+                                <p class="text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-stone-400">CSV Gradebook</p>
+                                <h2 class="mt-2 font-['DM_Serif_Display'] text-3xl leading-none text-stone-900">Final score sheet</h2>
+                            </div>
+                            <div class="space-y-4 px-6 py-6">
+                                <p class="text-sm leading-6 text-stone-500">One row per submission with final score and testcase totals. Use this for spreadsheets or LMS import.</p>
+                                <a class="inline-flex items-center gap-2 rounded-2xl bg-blue-700 px-4 py-3 text-sm font-semibold text-white transition hover:bg-blue-800"
+                                   th:href="@{/assignments/{assignmentId}/reports/gradebook.csv(assignmentId=${reportIndex.assignment.id})}">
+                                    <span class="material-symbols-outlined text-[18px]">download</span>
+                                    Download Gradebook
+                                </a>
+                            </div>
+                        </article>
+
+                        <article class="overflow-hidden rounded-[24px] border border-stone-200 bg-white shadow-[0_12px_30px_rgba(28,25,23,0.04)]">
+                            <div class="border-b border-stone-100 px-6 py-5">
+                                <p class="text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-stone-400">CSV Detail</p>
+                                <h2 class="mt-2 font-['DM_Serif_Display'] text-3xl leading-none text-stone-900">Audit evidence</h2>
+                            </div>
+                            <div class="space-y-4 px-6 py-6">
+                                <p class="text-sm leading-6 text-stone-500">Expanded testcase-level evidence with earned score, expected output, actual output, and feedback message.</p>
+                                <a class="inline-flex items-center gap-2 rounded-2xl bg-blue-700 px-4 py-3 text-sm font-semibold text-white transition hover:bg-blue-800"
+                                   th:href="@{/assignments/{assignmentId}/reports/detail.csv(assignmentId=${reportIndex.assignment.id})}">
+                                    <span class="material-symbols-outlined text-[18px]">download</span>
+                                    Download Detail CSV
+                                </a>
+                            </div>
+                        </article>
+
+                        <article class="overflow-hidden rounded-[24px] border border-stone-200 bg-white shadow-[0_12px_30px_rgba(28,25,23,0.04)]">
+                            <div class="border-b border-stone-100 px-6 py-5">
+                                <p class="text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-stone-400">PDF Summary</p>
+                                <h2 class="mt-2 font-['DM_Serif_Display'] text-3xl leading-none text-stone-900">Presentation-ready sheet</h2>
+                            </div>
+                            <div class="space-y-4 px-6 py-6">
+                                <p class="text-sm leading-6 text-stone-500">Compact teacher-facing report for presentation, printing, or handoff outside the system.</p>
+                                <a class="inline-flex items-center gap-2 rounded-2xl bg-blue-700 px-4 py-3 text-sm font-semibold text-white transition hover:bg-blue-800"
+                                   th:href="@{/assignments/{assignmentId}/reports/summary.pdf(assignmentId=${reportIndex.assignment.id})}">
+                                    <span class="material-symbols-outlined text-[18px]">download</span>
+                                    Download PDF Summary
+                                </a>
+                            </div>
+                        </article>
+                    </section>
+                </div>
+
+                <aside class="space-y-4">
+                    <section class="overflow-hidden rounded-[24px] border border-stone-200 bg-white shadow-[0_12px_24px_rgba(28,25,23,0.04)]">
+                        <div class="border-b border-stone-100 px-5 py-5">
+                            <p class="text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-stone-400">When to export</p>
+                            <h2 class="mt-2 font-['DM_Serif_Display'] text-3xl leading-none text-stone-900">Final teacher pass</h2>
+                        </div>
+                        <div class="space-y-3 px-5 py-5 text-sm leading-6 text-stone-500">
+                            <p>Export after you finish reviewing plagiarism decisions, batch results, and any compile/runtime anomalies.</p>
+                            <p>CSV is best for spreadsheet work. PDF is best for presentation and sign-off.</p>
+                        </div>
+                    </section>
+
+                    <section class="overflow-hidden rounded-[24px] border border-stone-200 bg-[#002366] text-white shadow-[0_16px_32px_rgba(12,59,53,0.18)]">
+                        <div class="px-5 py-5">
+                            <p class="text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-blue-100/70">Result Check</p>
+                            <h2 class="mt-2 font-['DM_Serif_Display'] text-3xl leading-none">Need one more review?</h2>
+                            <p class="mt-3 text-sm leading-6 text-blue-50/80">
+                                Go back to the result list if you want to inspect one more student before exporting the final files.
+                            </p>
+                            <a class="mt-5 inline-flex items-center gap-2 rounded-2xl bg-white px-4 py-2.5 text-sm font-semibold text-[#002366] transition hover:bg-blue-50"
+                               th:href="@{/assignments/{assignmentId}/results(assignmentId=${reportIndex.assignment.id})}">
+                                <span class="material-symbols-outlined text-[18px]">lab_profile</span>
+                                Back To Results
+                            </a>
+                        </div>
+                    </section>
+                </aside>
+            </div>
+        </section>
+    </main>
+
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+</div>
+</body>
+</html>

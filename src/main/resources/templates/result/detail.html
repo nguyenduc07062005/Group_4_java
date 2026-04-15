@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Result Detail')}"></head>
+<body class="bg-white text-stone-950">
+<div class="min-h-screen">
+    <header th:replace="~{fragments/header :: header}"></header>
+
+    <main class="mx-auto max-w-[1680px] px-4 py-6 lg:px-6">
+        <div th:replace="~{fragments/alerts :: alerts}"></div>
+
+        <section class="rounded-[30px] border border-stone-200 bg-white shadow-[0_18px_40px_rgba(28,25,23,0.06)]">
+            <div class="border-b border-stone-100 bg-gradient-to-r from-[#002366] via-[#11534a] to-[#0f766e] px-6 py-6 text-white lg:px-8">
+                <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+                    <div class="min-w-0 max-w-4xl">
+                        <div class="mb-3 flex flex-wrap items-center gap-2 text-[0.72rem] uppercase tracking-[0.24em] text-blue-100/80">
+                            <a class="transition hover:text-white" th:href="@{/dashboard}">Dashboard</a>
+                            <span>/</span>
+                            <a class="transition hover:text-white" th:href="@{/semesters}">Semester Board</a>
+                            <span>/</span>
+                            <a class="transition hover:text-white" th:href="@{/semesters/{id}(id=${resultDetail.assignment.semester.id})}" th:text="${resultDetail.assignment.semester.code}">SP26</a>
+                            <span>/</span>
+                            <a class="transition hover:text-white" th:href="@{/assignments/{id}(id=${resultDetail.assignment.id})}" th:text="${resultDetail.assignment.assignmentName}">Week 3</a>
+                            <span>/</span>
+                            <a class="transition hover:text-white" th:href="@{/assignments/{assignmentId}/results(assignmentId=${resultDetail.assignment.id})}">Results</a>
+                            <span>/</span>
+                            <span th:text="${resultDetail.submission.submitterName}">s2212001</span>
+                        </div>
+                        <h1 class="font-['DM_Serif_Display'] text-4xl leading-none tracking-[-0.04em] lg:text-[3.25rem]">Result Detail</h1>
+                        <p class="mt-4 max-w-3xl text-sm leading-6 text-blue-50/88"
+                           th:text="${resultDetail.submission.submitterName + ' | detailed evidence for the stored grading decision'}">
+                            s2212001 | detailed evidence for the stored grading decision
+                        </p>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-2">
+                        <a class="inline-flex items-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/16"
+                           th:href="@{/assignments/{assignmentId}/results(assignmentId=${resultDetail.assignment.id})}">
+                            <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+                            Back To Results
+                        </a>
+                        <a class="inline-flex items-center gap-2 rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-[#002366] transition hover:bg-blue-50"
+                           th:href="@{/assignments/{assignmentId}/reports(assignmentId=${resultDetail.assignment.id})}">
+                            <span class="material-symbols-outlined text-[18px]">download</span>
+                            Reports
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid gap-6 px-4 py-5 lg:grid-cols-[220px_minmax(0,1fr)_320px] lg:px-6 lg:py-6">
+                <aside class="lg:sticky lg:top-24 lg:self-start">
+                    <div th:replace="~{fragments/workspace-nav :: assignmentStages(${resultDetail.assignment.id}, 'results')}"></div>
+                </aside>
+
+                <div class="min-w-0 space-y-6">
+                    <section class="overflow-hidden rounded-[24px] border border-stone-200 bg-white shadow-[0_12px_30px_rgba(28,25,23,0.04)]">
+                        <div class="border-b border-stone-100 px-6 py-5">
+                            <div class="flex flex-wrap items-center justify-between gap-4">
+                                <div>
+                                    <p class="mb-1 text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-stone-400">Result Summary</p>
+                                    <h2 class="font-['DM_Serif_Display'] text-3xl leading-none tracking-[-0.03em] text-stone-900">Stored decision overview</h2>
+                                </div>
+                                <span class="inline-flex rounded-full px-3 py-1.5 text-[0.75rem] font-medium"
+                                      th:classappend="${resultDetail.result.status == 'DONE' ? ' bg-blue-50 text-blue-700' : (resultDetail.result.status == 'PENDING' or resultDetail.result.status == 'RUNNING' ? ' bg-amber-50 text-amber-700' : ' bg-rose-50 text-rose-700')}"
+                                      th:text="${resultDetail.result.status}">DONE</span>
+                            </div>
+                        </div>
+
+                        <div class="grid gap-4 px-6 py-6 sm:grid-cols-2 xl:grid-cols-5">
+                            <div class="rounded-[22px] bg-stone-50 px-4 py-4">
+                                <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-400">Total Score</p>
+                                <p class="mt-2 text-lg font-semibold text-stone-900" th:text="${resultDetail.result.totalScore + ' / ' + resultDetail.result.maxScore}">10.00 / 10.00</p>
+                            </div>
+                            <div class="rounded-[22px] bg-stone-50 px-4 py-4">
+                                <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-400">Logic</p>
+                                <p class="mt-2 text-lg font-semibold text-stone-900" th:text="${resultDetail.result.logicScore}">10.00</p>
+                            </div>
+                    <div class="rounded-[22px] bg-stone-50 px-4 py-4" th:if="${resultDetail.assignment.oopMode}">
+                                <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-400">OOP</p>
+                                <p class="mt-2 text-lg font-semibold text-stone-900" th:text="${resultDetail.result.oopScore}">0.00</p>
+                            </div>
+                            <div class="rounded-[22px] bg-stone-50 px-4 py-4">
+                                <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-400">Testcases</p>
+                                <p class="mt-2 text-lg font-semibold text-stone-900" th:text="${resultDetail.result.testcasePassedCount + ' / ' + resultDetail.result.testcaseTotalCount}">1 / 1</p>
+                            </div>
+                            <div class="rounded-[22px] bg-stone-50 px-4 py-4">
+                                <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-400">Batch</p>
+                                <p class="mt-2 text-lg font-semibold text-stone-900" th:text="${'Batch #' + resultDetail.batch.id}">Batch #12</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="grid gap-6 xl:grid-cols-2">
+                        <section class="overflow-hidden rounded-[24px] border border-stone-200 bg-white shadow-[0_12px_30px_rgba(28,25,23,0.04)]">
+                            <div class="border-b border-stone-100 px-6 py-5">
+                                <p class="mb-1 text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-stone-400">Compile Log</p>
+                                <h2 class="font-['DM_Serif_Display'] text-3xl leading-none tracking-[-0.03em] text-stone-900">Compiler output</h2>
+                            </div>
+                            <pre class="overflow-x-auto bg-stone-950 px-6 py-6 text-sm leading-7 text-blue-100" th:text="${resultDetail.result.compileLog != null ? resultDetail.result.compileLog : 'No compile log available.'}">Compilation succeeded.</pre>
+                        </section>
+
+                        <section class="overflow-hidden rounded-[24px] border border-stone-200 bg-white shadow-[0_12px_30px_rgba(28,25,23,0.04)]">
+                            <div class="border-b border-stone-100 px-6 py-5">
+                                <p class="mb-1 text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-stone-400">Execution Log</p>
+                                <h2 class="font-['DM_Serif_Display'] text-3xl leading-none tracking-[-0.03em] text-stone-900">Runtime output</h2>
+                            </div>
+                            <pre class="overflow-x-auto bg-stone-950 px-6 py-6 text-sm leading-7 text-blue-100" th:text="${resultDetail.result.executionLog != null ? resultDetail.result.executionLog : 'No execution log available.'}">Execution log</pre>
+                        </section>
+                    </section>
+
+                    <section class="overflow-hidden rounded-[24px] border border-stone-200 bg-white shadow-[0_12px_30px_rgba(28,25,23,0.04)]">
+                        <div class="border-b border-stone-100 px-6 py-5">
+                            <p class="mb-1 text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-stone-400">Testcase Breakdown</p>
+                            <h2 class="font-['DM_Serif_Display'] text-3xl leading-none tracking-[-0.03em] text-stone-900">Evidence by question</h2>
+                        </div>
+
+                        <div class="space-y-6 px-6 py-6" th:each="problem : ${resultDetail.problemResults}">
+                            <article class="rounded-[22px] bg-stone-50 px-5 py-5">
+                                <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                                    <div>
+                                        <h3 class="text-lg font-semibold text-stone-900" th:text="${'Problem ' + problem.problemOrder + ' - ' + problem.title}">Problem 1 - Warmup</h3>
+                                        <p class="mt-2 text-sm text-stone-500" th:text="${problem.status + ' | ' + problem.earnedScore + ' / ' + problem.maxScore + ' | ' + problem.testcasePassedCount + '/' + problem.testcaseTotalCount + ' testcase(s)'}">DONE | 10.00 / 10.00</p>
+                                    </div>
+                                    <span class="inline-flex rounded-full px-3 py-1 text-[0.72rem] font-semibold uppercase tracking-[0.16em]"
+                                          th:classappend="${problem.status == 'DONE' ? ' bg-blue-50 text-blue-700' : ' bg-rose-50 text-rose-700'}"
+                                          th:text="${problem.status}">DONE</span>
+                                </div>
+
+                                <div class="mt-5 overflow-hidden rounded-[18px] border border-stone-200 bg-white" th:if="${!#lists.isEmpty(problem.testCases)}">
+                                    <div class="overflow-x-auto">
+                                        <table class="min-w-full divide-y divide-stone-200 text-sm">
+                                            <thead class="bg-stone-50 text-left text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-500">
+                                            <tr>
+                                                <th class="px-4 py-3">Case</th>
+                                                <th class="px-4 py-3">Status</th>
+                                                <th class="px-4 py-3">Score</th>
+                                                <th class="px-4 py-3">Expected</th>
+                                                <th class="px-4 py-3">Actual</th>
+                                                <th class="px-4 py-3">Message</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody class="divide-y divide-stone-100 bg-white">
+                                            <tr th:each="testCase : ${problem.testCases}">
+                                                <td class="px-4 py-4 font-semibold text-stone-900" th:text="${testCase.caseOrder}">1</td>
+                                                <td class="px-4 py-4">
+                                                    <span class="inline-flex rounded-full px-3 py-1 text-[0.72rem] font-semibold uppercase tracking-[0.16em]"
+                                                          th:classappend="${testCase.passed ? ' bg-blue-50 text-blue-700' : ' bg-rose-50 text-rose-700'}"
+                                                          th:text="${testCase.status}">PASSED</span>
+                                                </td>
+                                                <td class="px-4 py-4 text-stone-600" th:text="${testCase.earnedScore}">10.00</td>
+                                                <td class="px-4 py-4 text-stone-500" th:text="${#strings.abbreviate(testCase.expectedOutput, 60)}">3</td>
+                                                <td class="px-4 py-4 text-stone-500" th:text="${#strings.abbreviate(testCase.actualOutput, 60)}">3</td>
+                                                <td class="px-4 py-4 text-stone-500" th:text="${testCase.message}">Output matched expected result.</td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </article>
+                        </div>
+                    </section>
+
+                    <section class="overflow-hidden rounded-[24px] border border-stone-200 bg-white shadow-[0_12px_30px_rgba(28,25,23,0.04)]"
+                             th:if="${!#lists.isEmpty(resultDetail.oopRuleResults)}">
+                        <div class="border-b border-stone-100 px-6 py-5">
+                            <p class="mb-1 text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-stone-400">OOP Rule Evaluation</p>
+                            <h2 class="font-['DM_Serif_Display'] text-3xl leading-none tracking-[-0.03em] text-stone-900">Rule checks</h2>
+                        </div>
+
+                        <div class="overflow-x-auto px-6 py-6">
+                            <table class="min-w-full divide-y divide-stone-200 text-sm">
+                                <thead class="bg-stone-50 text-left text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-500">
+                                <tr>
+                                    <th class="px-4 py-3">Rule</th>
+                                    <th class="px-4 py-3">Status</th>
+                                    <th class="px-4 py-3">Message</th>
+                                </tr>
+                                </thead>
+                                <tbody class="divide-y divide-stone-100 bg-white">
+                                <tr th:each="rule : ${resultDetail.oopRuleResults}">
+                                    <td class="px-4 py-4 font-semibold text-stone-900" th:text="${rule.ruleLabel}">Uses inheritance</td>
+                                    <td class="px-4 py-4">
+                                        <span class="inline-flex rounded-full px-3 py-1 text-[0.72rem] font-semibold uppercase tracking-[0.16em]"
+                                              th:classappend="${rule.passed ? ' bg-blue-50 text-blue-700' : ' bg-rose-50 text-rose-700'}"
+                                              th:text="${rule.passed ? 'PASSED' : 'FAILED'}">PASSED</span>
+                                    </td>
+                                    <td class="px-4 py-4 text-stone-500" th:text="${rule.message}">Detected keyword</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+                </div>
+
+                <aside class="space-y-4">
+                    <section class="overflow-hidden rounded-[24px] border border-stone-200 bg-white shadow-[0_12px_24px_rgba(28,25,23,0.04)]">
+                        <div class="border-b border-stone-100 px-5 py-5">
+                            <p class="text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-stone-400">Submission</p>
+                            <h2 class="mt-2 font-['DM_Serif_Display'] text-3xl leading-none text-stone-900" th:text="${resultDetail.submission.submitterName}">s2212001</h2>
+                        </div>
+                        <div class="space-y-3 px-5 py-5">
+                            <div class="rounded-[20px] bg-stone-50 px-4 py-4">
+                                <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-400">Total</p>
+                                <p class="mt-2 text-2xl font-semibold text-stone-900" th:text="${resultDetail.result.totalScore}">10.00</p>
+                            </div>
+                            <div class="rounded-[20px] bg-stone-50 px-4 py-4">
+                                <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-400">Passed Testcases</p>
+                                <p class="mt-2 text-2xl font-semibold text-stone-900" th:text="${resultDetail.result.testcasePassedCount}">1</p>
+                            </div>
+                            <div class="rounded-[20px] bg-stone-50 px-4 py-4">
+                                <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-400">Result Status</p>
+                                <p class="mt-2 text-sm font-semibold text-stone-900" th:text="${resultDetail.result.status}">DONE</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="overflow-hidden rounded-[24px] border border-stone-200 bg-[#002366] text-white shadow-[0_16px_32px_rgba(12,59,53,0.18)]">
+                        <div class="px-5 py-5">
+                            <p class="text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-blue-100/70">Review Goal</p>
+                            <h2 class="mt-2 font-['DM_Serif_Display'] text-3xl leading-none">Trace every score</h2>
+                            <p class="mt-3 text-sm leading-6 text-blue-50/80">
+                                Use the compile log, execution log, testcase rows, and OOP rule checks together. This page is the audit trail for the stored grading result.
+                            </p>
+                        </div>
+                    </section>
+                </aside>
+            </div>
+        </section>
+    </main>
+
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+</div>
+</body>
+</html>
