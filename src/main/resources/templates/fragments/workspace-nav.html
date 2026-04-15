@@ -1,0 +1,46 @@
+<div xmlns:th="http://www.thymeleaf.org"
+     th:fragment="assignmentStages(assignmentId, activeStage)"
+     th:with="gradingActive=${activeStage == 'grading' or activeStage == 'batch' or activeStage == 'results' or activeStage == 'reports'}"
+     class="assignment-flow-rail overflow-hidden rounded-[24px] border border-stone-200 bg-white shadow-[0_12px_24px_rgba(28,25,23,0.04)]">
+    <nav class="space-y-1 px-2 py-3" aria-label="Assignment stages">
+        <a class="flex items-center gap-3 rounded-[18px] px-3 py-3 transition"
+           th:classappend="${activeStage == 'setup'} ? ' bg-[#002366] text-white shadow-[0_12px_22px_rgba(12,59,53,0.18)]' : ' text-stone-600 hover:bg-stone-50 hover:text-stone-900'"
+           th:href="@{/assignments/{id}(id=${assignmentId})}">
+            <span class="material-symbols-outlined text-[20px]">tune</span>
+            <span class="min-w-0">
+                <span class="block text-sm font-semibold">Setup</span>
+                <span class="block text-xs opacity-80">Info, marks, testcases</span>
+            </span>
+        </a>
+
+        <a class="flex items-center gap-3 rounded-[18px] px-3 py-3 transition"
+           th:classappend="${activeStage == 'intake'} ? ' bg-[#002366] text-white shadow-[0_12px_22px_rgba(12,59,53,0.18)]' : ' text-stone-600 hover:bg-stone-50 hover:text-stone-900'"
+           th:href="@{/assignments/{assignmentId}/submissions/upload(assignmentId=${assignmentId})}">
+            <span class="material-symbols-outlined text-[20px]">upload_file</span>
+            <span class="min-w-0">
+                <span class="block text-sm font-semibold">Intake</span>
+                <span class="block text-xs opacity-80">Upload and validate</span>
+            </span>
+        </a>
+
+        <a class="flex items-center gap-3 rounded-[18px] px-3 py-3 transition"
+           th:classappend="${activeStage == 'plagiarism'} ? ' bg-[#002366] text-white shadow-[0_12px_22px_rgba(12,59,53,0.18)]' : ' text-stone-600 hover:bg-stone-50 hover:text-stone-900'"
+           th:href="@{/assignments/{assignmentId}/plagiarism(assignmentId=${assignmentId})}">
+            <span class="material-symbols-outlined text-[20px]">policy</span>
+            <span class="min-w-0">
+                <span class="block text-sm font-semibold">Plagiarism</span>
+                <span class="block text-xs opacity-80">Review flagged pairs</span>
+            </span>
+        </a>
+
+        <a class="flex items-center gap-3 rounded-[18px] px-3 py-3 transition"
+           th:classappend="${gradingActive} ? ' bg-[#002366] text-white shadow-[0_12px_22px_rgba(12,59,53,0.18)]' : ' text-stone-600 hover:bg-stone-50 hover:text-stone-900'"
+           th:href="@{/assignments/{assignmentId}/grading(assignmentId=${assignmentId})}">
+            <span class="material-symbols-outlined text-[20px]">play_circle</span>
+            <span class="min-w-0">
+                <span class="block text-sm font-semibold">Grading</span>
+                <span class="block text-xs opacity-80">Snapshot, results, exports</span>
+            </span>
+        </a>
+    </nav>
+</div>
