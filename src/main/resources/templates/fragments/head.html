@@ -2,5 +2,368 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="${title}">Java Code Grader</title>
+    <meta name="description" th:content="${pageDescription ?: 'Teacher workspace for Java assignment setup, plagiarism review, batch grading, and reports.'}">
+    <meta name="robots" th:content="${pageRobots ?: 'noindex,nofollow'}">
+    <meta name="theme-color" content="#0047A6">
+    <meta name="application-name" content="JavaGrader">
+    <meta name="color-scheme" content="light">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="JavaGrader">
+    <meta property="og:title" th:content="${title}">
+    <meta property="og:description" th:content="${pageDescription ?: 'Teacher workspace for Java assignment setup, plagiarism review, batch grading, and reports.'}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" th:content="${title}">
+    <meta name="twitter:description" th:content="${pageDescription ?: 'Teacher workspace for Java assignment setup, plagiarism review, batch grading, and reports.'}">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" th:href="@{/css/style.css}">
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600;6..72,700&display=swap" rel="stylesheet">
+
+    <script id="tailwind-config">
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        studio: {
+                            bg: "#FFFFFF",
+                            ink: "#111111",
+                            muted: "#1F2937",
+                            border: "#D9E1F0",
+                            teal: "#0047A6",
+                            accent: "#A52E01",
+                            slate: "#002366",
+                            warm: "#F8E7DF",
+                            soft: "#EDF3FF",
+                            neutral: "#F3F4FC"
+                        }
+                    },
+                    fontFamily: {
+                        display: ["Newsreader", "serif"],
+                        body: ["Inter", "sans-serif"],
+                        mono: ["JetBrains Mono", "monospace"]
+                    }
+                }
+            }
+        };
+    </script>
+
+    <style>
+        :root {
+            --ui-bg: #ffffff;
+            --ui-surface: #f3f4fc;
+            --ui-surface-soft: #edf3ff;
+            --ui-shell: #ffffff;
+            --ui-primary: #0047a6;
+            --ui-primary-hover: #0d5dc8;
+            --ui-secondary: #002366;
+            --ui-accent: #a52e01;
+            --ui-accent-soft: #f8e7df;
+            --ui-text: #111111;
+            --ui-text-soft: #1f2937;
+            --ui-text-muted: #374151;
+            --ui-border: #d9e1f0;
+        }
+
+        [x-cloak] {
+            display: none !important;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            -webkit-text-size-adjust: 100%;
+            text-size-adjust: 100%;
+        }
+
+        body {
+            font-family: "Inter", sans-serif;
+            background: var(--ui-bg);
+            color: var(--ui-text);
+            line-height: 1.65;
+            text-rendering: optimizeLegibility;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .app-shell-surface {
+            background: var(--ui-shell) !important;
+        }
+
+        .app-shell-divider {
+            border-color: rgba(0, 35, 102, 0.08) !important;
+        }
+
+        body.bg-\[\#E2E8F0\],
+        body.bg-\[\#F8FAFC\],
+        body.bg-\[\#faf8f5\],
+        body.bg-\[\#f7f4ee\] {
+            background: var(--ui-bg) !important;
+            color: var(--ui-text) !important;
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: "FILL" 0, "wght" 350, "GRAD" 0, "opsz" 24;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4 {
+            text-wrap: balance;
+        }
+
+        p,
+        li,
+        td,
+        label,
+        input,
+        select,
+        textarea,
+        button {
+            text-wrap: pretty;
+        }
+
+        ::selection {
+            background: var(--ui-primary);
+            color: #ffffff;
+        }
+
+        a:focus-visible,
+        button:focus-visible,
+        input:focus-visible,
+        select:focus-visible,
+        textarea:focus-visible {
+            outline: 2px solid rgba(0, 71, 166, 0.32);
+            outline-offset: 2px;
+        }
+
+        .bg-\[\#006AFF\],
+        .bg-\[\#0047AB\],
+        .bg-\[\#347070\] {
+            background-color: var(--ui-primary) !important;
+        }
+
+        .bg-\[\#002366\],
+        .bg-\[\#214d4a\] {
+            background-color: var(--ui-secondary) !important;
+        }
+
+        .bg-\[\#E2E8F0\],
+        .bg-\[\#F8FAFC\],
+        .bg-\[\#faf8f5\],
+        .bg-\[\#f7f4ee\],
+        .bg-\[\#f7f3ec\],
+        .bg-\[\#f3efe8\],
+        .bg-stone-50,
+        .bg-stone-50\/70,
+        .bg-stone-100 {
+            background-color: var(--ui-surface) !important;
+        }
+
+        .bg-\[\#E0F0FF\],
+        .bg-blue-50 {
+            background-color: var(--ui-surface-soft) !important;
+        }
+
+        .bg-\[\#FFE2D6\] {
+            background-color: var(--ui-accent-soft) !important;
+        }
+
+        .text-\[\#006AFF\],
+        .text-blue-700,
+        .text-blue-800,
+        .text-blue-900,
+        .text-\[\#347070\] {
+            color: var(--ui-primary) !important;
+        }
+
+        .text-\[\#8B2E01\],
+        .text-\[\#b35c37\] {
+            color: var(--ui-accent) !important;
+        }
+
+        .text-stone-400,
+        .text-stone-500,
+        .text-stone-600,
+        .text-stone-700,
+        .text-stone-800 {
+            color: var(--ui-text-soft) !important;
+        }
+
+        .text-stone-900,
+        .text-stone-950 {
+            color: var(--ui-text) !important;
+        }
+
+        .border-stone-100,
+        .border-stone-200,
+        .border-stone-300 {
+            border-color: var(--ui-border) !important;
+        }
+
+        .hover\:bg-\[\#0056D6\]:hover,
+        .hover\:bg-blue-800:hover {
+            background-color: var(--ui-primary-hover) !important;
+        }
+
+        .hover\:bg-\[\#214d4a\]:hover {
+            background-color: var(--ui-secondary) !important;
+        }
+
+        .hover\:bg-\[\#ffd6c5\]:hover {
+            background-color: #f1d4c8 !important;
+        }
+
+        .hover\:bg-\[\#E0F0FF\]:hover,
+        .hover\:bg-blue-50:hover {
+            background-color: var(--ui-surface-soft) !important;
+        }
+
+        .hover\:text-\[\#006AFF\]:hover {
+            color: var(--ui-primary) !important;
+        }
+
+        .hover\:text-\[\#8B2E01\]:hover {
+            color: var(--ui-accent) !important;
+        }
+
+        /* ── Mobile responsive - header bar ── */
+        @media (max-width: 1023px) {
+            .app-shell-header > div:nth-child(3) .font-\[\'Newsreader\'\] {
+                font-size: 1.4rem;
+            }
+        }
+
+        /* ── Global form submit loading indicator ── */
+        form.is-submitting button[type="submit"],
+        form.is-submitting .btn-primary {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+        form.is-submitting button[type="submit"]::after,
+        form.is-submitting .btn-primary::after {
+            content: '';
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            margin-left: 8px;
+            border: 2px solid currentColor;
+            border-right-color: transparent;
+            border-radius: 50%;
+            animation: form-spin 0.6s linear infinite;
+            vertical-align: middle;
+        }
+        @keyframes form-spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ── Tailwind table hover for inline Tailwind tables ── */
+        .divide-y > tr:hover,
+        tbody.divide-y > tr:hover {
+            background-color: rgba(0, 71, 166, 0.03);
+        }
+
+        /* ── Workspace flow rail - active item pulse ── */
+        .assignment-flow-rail a[class*="bg-[#002366]"] {
+            position: relative;
+        }
+        .assignment-flow-rail a[class*="bg-[#002366]"]::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 4px;
+            height: 60%;
+            border-radius: 0 4px 4px 0;
+            background: #ffffff;
+            opacity: 0.6;
+        }
+
+        /* ── Card subtle lift on hover ── */
+        article[class*="rounded-[30px]"] {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        article[class*="rounded-[30px]"]:hover {
+            transform: translateY(-2px);
+        }
+
+        /* ── Dropdown backdrop blur ── */
+        .app-shell-header [x-show][class*="rounded-[24px]"][class*="shadow"] {
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        .focus\:border-\[\#347070\]:focus,
+        .focus\:border-\[\#006AFF\]:focus {
+            border-color: var(--ui-primary) !important;
+        }
+
+        .focus\:ring-\[\#347070\]\/10:focus,
+        .focus\:ring-\[\#006AFF\]\/10:focus {
+            --tw-ring-color: rgba(0, 71, 166, 0.12) !important;
+        }
+
+        .from-\[\#002366\],
+        .from-\[\#214d4a\] {
+            --tw-gradient-from: var(--ui-secondary) var(--tw-gradient-from-position) !important;
+            --tw-gradient-to: rgb(0 35 102 / 0) var(--tw-gradient-to-position) !important;
+        }
+
+        .via-\[\#11534a\],
+        .via-\[\#347070\] {
+            --tw-gradient-to: rgb(0 71 166 / 0) var(--tw-gradient-to-position) !important;
+            --tw-gradient-via: var(--ui-primary) var(--tw-gradient-via-position) !important;
+        }
+
+        .to-\[\#0f766e\],
+        .to-\[\#607d8b\] {
+            --tw-gradient-to: #6f96d7 var(--tw-gradient-to-position) !important;
+        }
+
+        .text-blue-50\/88,
+        .text-blue-50\/80,
+        .text-blue-50\/75,
+        .text-blue-100\/80,
+        .text-blue-100\/70,
+        .text-blue-100\/65 {
+            color: rgba(255, 255, 255, 0.9) !important;
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Global form submit → add loading class
+            document.addEventListener('submit', function (e) {
+                var form = e.target;
+                if (form.tagName !== 'FORM') return;
+                // Skip forms that handle their own loading (Alpine inline, search, etc.)
+                if (form.dataset.noLoadingState != null) return;
+                if (form.classList.contains('is-submitting')) {
+                    e.preventDefault();
+                    return; // prevent double submit
+                }
+                form.classList.add('is-submitting');
+            });
+
+            // Smooth scroll for hash links on workspace navigation
+            document.querySelectorAll('a[href*="#"]').forEach(function (link) {
+                link.addEventListener('click', function (e) {
+                    var href = link.getAttribute('href');
+                    if (!href || href.indexOf('#') === -1) return;
+                    var hash = href.substring(href.indexOf('#'));
+                    var target = document.querySelector(hash);
+                    if (target) {
+                        e.preventDefault();
+                        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        if (history.pushState) {
+                            history.pushState(null, '', hash);
+                        }
+                    }
+                });
+            });
+        });
+    </script>
 </head>

@@ -1,16 +1,310 @@
-<header xmlns:th="http://www.thymeleaf.org" class="site-header" th:fragment="header">
-    <div class="container header-inner">
-        <div class="brand-block">
-            <a class="brand-link" th:href="@{/dashboard}">Java Code Grader</a>
-            <span class="brand-subtitle">Group 4</span>
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="header">
+    <div th:if="${headerAuthenticated}"
+         x-data="{ sidebarOpen: false, notificationsOpen: false, userOpen: false, settingsOpen: false }"
+         class="app-shell-header">
+
+        <div x-show="sidebarOpen"
+             x-transition.opacity
+             x-cloak
+             @click="sidebarOpen = false"
+             class="fixed inset-0 z-40 bg-black/20 lg:hidden"></div>
+
+        <aside class="fixed inset-y-0 left-0 z-50 w-[286px] app-shell-surface border-r app-shell-divider text-stone-950 transition-transform duration-300 lg:translate-x-0"
+               :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'">
+            <div class="flex h-full flex-col px-4 py-5 overflow-y-auto overflow-x-hidden [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+                <div class="flex items-center justify-between gap-3">
+                    <a th:href="@{/dashboard}" class="flex min-w-0 items-center gap-3">
+                        <div class="flex h-12 w-12 items-center justify-center rounded-[18px] bg-[#006AFF] text-white shadow-[0_12px_28px_rgba(52,112,112,0.22)]">
+                            <span class="material-symbols-outlined text-[22px]">code_blocks</span>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="truncate font-['Newsreader'] text-[1.42rem] font-semibold leading-none text-stone-950">JavaGrader</p>
+                            <p class="mt-1 truncate text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-stone-700">Teacher Workspace</p>
+                        </div>
+                    </a>
+
+                    <button @click="sidebarOpen = false"
+                            class="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/80 text-stone-900 transition hover:bg-white lg:hidden"
+                            type="button"
+                            aria-label="Close sidebar">
+                        <span class="material-symbols-outlined text-[18px]">close</span>
+                    </button>
+                </div>
+
+                <div class="mt-8 space-y-2.5">
+                    <section th:attr="x-data=${headerPrimarySection == 'dashboard' ? '{ open: true }' : '{ open: false }'}"
+                             class="rounded-[26px] px-2 py-2 transition"
+                             :class="open ? 'bg-white/80 shadow-[0_10px_26px_rgba(52,112,112,0.08)]' : 'bg-transparent'">
+                        <button @click="open = !open"
+                                type="button"
+                                class="flex w-full items-center justify-between gap-3 rounded-[20px] px-3 py-3 text-left transition hover:bg-white/72">
+                            <span class="flex items-center gap-3">
+                                <span class="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#006AFF] text-white shadow-[0_10px_22px_rgba(52,112,112,0.18)]">
+                                    <span class="material-symbols-outlined text-[18px]">dashboard</span>
+                                </span>
+                                <span>
+                                    <span class="block text-sm font-semibold text-stone-950">Dashboard</span>
+                                    <span class="block text-[0.72rem] text-stone-700">Overview, alerts, analytics</span>
+                                </span>
+                            </span>
+                            <span class="material-symbols-outlined text-[18px] text-stone-800 transition" :class="open ? 'rotate-180' : ''">expand_more</span>
+                        </button>
+
+                        <div x-show="open" x-transition x-cloak class="ml-[3.3rem] mt-2 space-y-1.5 pb-1 pr-1">
+                            <a th:href="@{/dashboard}" class="flex items-center gap-3 rounded-[16px] px-3 py-2.5 text-sm font-medium text-stone-950 transition hover:translate-x-1 hover:bg-white hover:text-[#006AFF]">
+                                <span class="material-symbols-outlined text-[18px]">space_dashboard</span>
+                                Overview
+                            </a>
+                            <a th:href="@{/dashboard#attention-panel}" class="flex items-center gap-3 rounded-[16px] px-3 py-2.5 text-sm font-medium text-stone-950 transition hover:translate-x-1 hover:bg-white hover:text-[#006AFF]">
+                                <span class="material-symbols-outlined text-[18px]">notification_important</span>
+                                Need Attention
+                            </a>
+                            <a th:href="@{/dashboard#action-table}" class="flex items-center gap-3 rounded-[16px] px-3 py-2.5 text-sm font-medium text-stone-950 transition hover:translate-x-1 hover:bg-white hover:text-[#006AFF]">
+                                <span class="material-symbols-outlined text-[18px]">table_rows</span>
+                                Action Queue
+                            </a>
+                        </div>
+                    </section>
+
+                    <section th:attr="x-data=${headerPrimarySection == 'semesters' ? '{ open: true }' : '{ open: false }'}"
+                             class="rounded-[26px] px-2 py-2 transition"
+                             :class="open ? 'bg-white/80 shadow-[0_10px_26px_rgba(96,125,139,0.08)]' : 'bg-transparent'">
+                        <button @click="open = !open"
+                                type="button"
+                                class="flex w-full items-center justify-between gap-3 rounded-[20px] px-3 py-3 text-left transition hover:bg-white/72">
+                            <span class="flex items-center gap-3">
+                                <span class="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#8B2E01] text-white shadow-[0_10px_22px_rgba(179,92,55,0.18)]">
+                                    <span class="material-symbols-outlined text-[18px]">calendar_month</span>
+                                </span>
+                                <span>
+                                    <span class="block text-sm font-semibold text-stone-950">Semester</span>
+                                    <span class="block text-[0.72rem] text-stone-700">Courses and assignments by term</span>
+                                </span>
+                            </span>
+                            <span class="material-symbols-outlined text-[18px] text-stone-800 transition" :class="open ? 'rotate-180' : ''">expand_more</span>
+                        </button>
+
+                        <div x-show="open" x-transition x-cloak class="ml-[3.3rem] mt-2 space-y-1.5 pb-1 pr-1">
+                            <a th:href="@{/semesters}" class="flex items-center gap-3 rounded-[16px] px-3 py-2.5 text-sm font-medium text-stone-950 transition hover:translate-x-1 hover:bg-white hover:text-[#8B2E01]">
+                                <span class="material-symbols-outlined text-[18px]">view_list</span>
+                                All Semesters
+                            </a>
+                            <a th:href="@{/semesters/create}" class="flex items-center gap-3 rounded-[16px] px-3 py-2.5 text-sm font-medium text-stone-950 transition hover:translate-x-1 hover:bg-white hover:text-[#8B2E01]">
+                                <span class="material-symbols-outlined text-[18px]">add_circle</span>
+                                Create Semester
+                            </a>
+                            <a th:each="semester : ${headerSemesterSummaries}"
+                               th:href="@{/semesters/{id}(id=${semester.id})}"
+                               class="flex items-start gap-3 rounded-[16px] px-3 py-2.5 text-sm font-medium text-stone-950 transition hover:translate-x-1 hover:bg-white hover:text-[#8B2E01]">
+                                <span class="material-symbols-outlined mt-0.5 text-[18px]">folder_open</span>
+                                <span class="min-w-0">
+                                    <span class="block font-semibold text-stone-950" th:text="${semester.code}">SP26</span>
+                                    <span class="block truncate text-[0.72rem] text-stone-700" th:text="${semester.name}">Spring 2026</span>
+                                </span>
+                            </a>
+                            <a th:if="${headerSemesterCount > 4}" th:href="@{/semesters}" class="flex items-center gap-3 rounded-[16px] px-3 py-2 text-xs font-semibold text-[#8B2E01] transition hover:bg-white">
+                                <span class="material-symbols-outlined text-[16px]">more_horiz</span>
+                                View all <span th:text="${headerSemesterCount}"></span> semesters
+                            </a>
+                        </div>
+                    </section>
+                </div>
+
+
+            </div>
+        </aside>
+
+        <div class="fixed inset-x-0 top-0 z-40 lg:left-[286px]">
+            <div class="relative app-shell-surface border-b app-shell-divider">
+                <div class="flex min-h-[88px] items-center gap-4 px-6 py-4 lg:px-8">
+                    <button @click="sidebarOpen = true"
+                            type="button"
+                            class="flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-stone-950 shadow-[0_10px_24px_rgba(96,125,139,0.12)] transition hover:bg-[#f3efe8] lg:hidden"
+                            aria-label="Open sidebar">
+                        <span class="material-symbols-outlined text-[20px]">menu</span>
+                    </button>
+
+                    <div class="min-w-0 flex-1">
+                        <h1 class="truncate font-['Newsreader'] text-[2rem] font-semibold leading-none tracking-[-0.03em] text-stone-950"
+                            th:text="${headerPageTitle ?: 'Dashboard'}">Dashboard</h1>
+                        <div class="mt-2 flex items-center gap-2 truncate text-[0.72rem] font-semibold uppercase tracking-[0.28em] text-stone-700">
+                            <th:block th:with="trailStr=${headerPageTrail ?: 'WORKBOARD / DASHBOARD'}">
+                                <th:block th:with="parts=${#strings.arraySplit(trailStr, '/')}">
+                                    <th:block th:each="part, stat : ${parts}">
+                                        <th:block th:with="trimmedPart=${#strings.trim(part)}">
+                                            <a th:if="${trimmedPart == 'WORKBOARD' || trimmedPart == 'DASHBOARD'}" th:href="@{/dashboard}" class="transition hover:text-[#006AFF]" th:text="${trimmedPart}"></a>
+                                            <a th:if="${trimmedPart == 'SEMESTERS'}" th:href="@{/semesters}" class="transition hover:text-[#006AFF]" th:text="${trimmedPart}"></a>
+                                            <a th:if="${trimmedPart == 'COURSES'}" th:href="@{/semesters}" class="transition hover:text-[#006AFF]" th:text="${trimmedPart}"></a>
+                                            <a th:if="${trimmedPart == 'ASSIGNMENTS'}" th:href="@{#}" class="transition hover:text-[#006AFF]" th:text="${trimmedPart}"></a>
+                                            <span th:if="${trimmedPart != 'WORKBOARD' and trimmedPart != 'DASHBOARD' and trimmedPart != 'SEMESTERS' and trimmedPart != 'COURSES' and trimmedPart != 'ASSIGNMENTS'}" th:text="${trimmedPart}"></span>
+                                            <span th:if="${!stat.last}">/</span>
+                                        </th:block>
+                                    </th:block>
+                                </th:block>
+                            </th:block>
+                        </div>
+                    </div>
+
+                    <div class="hidden min-w-[320px] max-w-[520px] flex-1 xl:flex">
+                        <form class="relative w-full" method="get" th:action="@{/search}" role="search" aria-label="Global search">
+                            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[18px] text-stone-700">search</span>
+                            <input class="w-full rounded-full bg-white px-12 py-3 text-sm font-medium text-stone-950 placeholder:text-stone-700 outline-none shadow-[0_12px_26px_rgba(96,125,139,0.1)] transition focus:ring-4 focus:ring-[#006AFF]/10"
+                                   type="search"
+                                   name="q"
+                                   th:value="${param.q != null ? param.q[0] : ''}"
+                                   placeholder="Search semester, course, assignment…"
+                                   aria-label="Search">
+                        </form>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <div class="relative">
+                            <button @click="notificationsOpen = !notificationsOpen; userOpen = false"
+                                    type="button"
+                                    class="relative flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-stone-950 shadow-[0_10px_24px_rgba(96,125,139,0.12)] transition hover:bg-[#f3efe8]"
+                                    aria-label="Notifications">
+                                <span class="material-symbols-outlined text-[20px]">notifications</span>
+                                <span th:if="${headerNotificationCount > 0}" class="absolute right-2 top-2 h-2.5 w-2.5 rounded-full bg-[#8B2E01]"></span>
+                            </button>
+
+                            <div x-show="notificationsOpen"
+                                 x-transition
+                                 x-cloak
+                                 @click.away="notificationsOpen = false"
+                                 class="absolute right-0 mt-3 w-[340px] overflow-hidden rounded-[24px] bg-white text-stone-950 shadow-[0_22px_52px_rgba(52,112,112,0.14)]">
+                                <div class="px-5 py-4">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <p class="text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-stone-700">Notifications</p>
+                                            <h3 class="mt-1 text-base font-semibold text-stone-950">Workspace Signals</h3>
+                                        </div>
+                                        <span class="rounded-full bg-[#E0F0FF] px-3 py-1 text-xs font-semibold text-[#006AFF]" th:text="${headerNotificationCount}">0</span>
+                                    </div>
+                                </div>
+
+                                <div class="max-h-[360px] overflow-y-auto px-3 pb-3">
+                                    <a th:each="item : ${headerNotificationItems}"
+                                       th:href="@{${item.destination}}"
+                                       class="mb-2 block rounded-[18px] bg-[#E2E8F0] px-4 py-3 transition hover:translate-x-1 hover:bg-[#E0F0FF]">
+                                        <div class="flex items-start gap-3">
+                                            <span class="material-symbols-outlined mt-0.5 text-[18px] text-[#006AFF]"
+                                                  th:text="${item.tone == 'warning' ? 'warning' : (item.tone == 'success' ? 'check_circle' : 'info')}">info</span>
+                                            <div class="min-w-0">
+                                                <p class="text-sm font-semibold text-stone-950" th:text="${item.title}">Status</p>
+                                                <p class="mt-1 text-sm text-stone-800" th:text="${item.message}">Message</p>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="relative">
+                            <button @click="userOpen = !userOpen; notificationsOpen = false"
+                                    type="button"
+                                    class="flex items-center gap-3 rounded-full bg-white px-2 py-1.5 text-left shadow-[0_10px_24px_rgba(96,125,139,0.12)] transition hover:bg-[#f3efe8]"
+                                    aria-label="User menu">
+                                <span class="flex h-9 w-9 items-center justify-center rounded-full bg-[#006AFF] text-sm font-bold text-white"
+                                      th:text="${headerUserInitials ?: 'TT'}">TT</span>
+                                <span class="hidden xl:block">
+                                    <span class="block text-sm font-semibold text-stone-950" th:text="${headerUserFullName ?: 'Teacher'}">Teacher</span>
+                                    <span class="block text-[0.72rem] uppercase tracking-[0.18em] text-stone-700">Teacher account</span>
+                                </span>
+                                <span class="material-symbols-outlined hidden text-[18px] text-stone-900 xl:block">expand_more</span>
+                            </button>
+
+                            <div x-show="userOpen"
+                                 x-transition
+                                 x-cloak
+                                 @click.away="userOpen = false"
+                                 class="absolute right-0 mt-3 w-[320px] overflow-hidden rounded-[24px] bg-white text-stone-950 shadow-[0_22px_52px_rgba(52,112,112,0.14)]">
+                                <div class="px-5 py-4">
+                                    <p class="text-sm font-semibold text-stone-950" th:text="${headerUserFullName ?: 'Teacher Name'}">Teacher Name</p>
+                                    <p class="mt-1 text-sm text-stone-800" th:text="${headerUserRole ?: 'System Role'}">System Role</p>
+                                </div>
+
+                                <div class="space-y-2 p-3">
+                                    <button @click="settingsOpen = true; userOpen = false"
+                                            type="button"
+                                            class="flex w-full items-center justify-between rounded-[18px] bg-[#E2E8F0] px-4 py-3 text-sm font-semibold text-stone-950 transition hover:translate-x-1 hover:bg-[#E0F0FF] hover:text-[#006AFF]">
+                                        <span class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px]">settings</span> Settings</span>
+                                        <span class="material-symbols-outlined text-[18px]">chevron_right</span>
+                                    </button>
+
+                                    <div class="flex items-center justify-between rounded-[18px] bg-[#E2E8F0] px-4 py-3 text-sm font-semibold text-stone-950">
+                                        <span class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px]">language</span> Language</span>
+                                        <span class="rounded-full bg-white px-3 py-1 text-xs font-semibold uppercase text-stone-950" th:text="${#locale.language}">EN</span>
+                                    </div>
+
+                                    <form th:action="@{/logout}" method="post" class="m-0">
+                                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                        <button type="submit" class="flex w-full items-center gap-2 rounded-[18px] bg-[#FFE2D6] px-4 py-3 text-sm font-semibold text-[#8B2E01] transition hover:translate-x-1 hover:bg-[#FFE2D6]">
+                                            <span class="material-symbols-outlined text-[18px]">logout</span>
+                                            Sign Out
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <nav class="top-nav">
-            <a class="nav-link" th:href="@{/dashboard}">Dashboard</a>
-            <a class="nav-link" th:href="@{/semesters/create}">Create Semester</a>
-            <a class="nav-link" th:href="@{/assignments/create}">Create Assignment</a>
-            <form th:action="@{/logout}" method="post" class="logout-form">
-                <button class="btn btn-secondary" type="submit">Logout</button>
-            </form>
-        </nav>
+
+        <div x-show="settingsOpen" x-transition x-cloak class="fixed inset-0 z-[70]">
+            <div class="absolute inset-0 bg-black/22" @click="settingsOpen = false"></div>
+            <div class="absolute right-0 top-0 h-full w-full max-w-md overflow-y-auto bg-[#E2E8F0] text-stone-950 shadow-[0_24px_80px_rgba(52,112,112,0.22)]">
+                <div class="flex items-center justify-between px-6 py-5">
+                    <div>
+                        <p class="text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-stone-700">Settings</p>
+                        <h3 class="mt-1 font-['Newsreader'] text-3xl font-semibold leading-none text-stone-950">Teacher Details</h3>
+                    </div>
+                    <button @click="settingsOpen = false"
+                            type="button"
+                            class="flex h-10 w-10 items-center justify-center rounded-2xl bg-white text-stone-900 transition hover:bg-[#f3efe8]">
+                        <span class="material-symbols-outlined text-[18px]">close</span>
+                    </button>
+                </div>
+
+                <div class="space-y-6 px-6 py-6">
+                    <section class="rounded-[24px] bg-white p-5 shadow-[0_12px_28px_rgba(96,125,139,0.08)]">
+                        <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-700">User Details</p>
+                        <div class="mt-4 flex items-center gap-4">
+                            <div class="flex h-16 w-16 items-center justify-center rounded-full bg-[#006AFF] text-xl font-bold text-white" th:text="${headerUserInitials ?: 'TT'}">TT</div>
+                            <div>
+                                <p class="text-base font-semibold text-stone-950" th:text="${headerUserFullName ?: 'Teacher Name'}">Teacher Name</p>
+                                <p class="mt-1 text-sm text-stone-800" th:text="${headerUserRole ?: 'System Role'}">System Role</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="rounded-[24px] bg-white p-5 shadow-[0_12px_28px_rgba(96,125,139,0.08)]">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-700">Language</p>
+                                <p class="mt-1 text-sm text-stone-800">Switch the teacher workspace language.</p>
+                            </div>
+                            <div class="inline-flex items-center rounded-full bg-[#E0F0FF] p-1 text-sm font-semibold text-stone-900">
+                                <a th:href="@{''(lang='en')}"
+                                   class="rounded-full px-3 py-1.5 transition"
+                                   th:classappend="${#locale.language == 'en'} ? 'bg-[#006AFF] text-white' : 'hover:bg-[#C2E0FF]'">EN</a>
+                                <a th:href="@{''(lang='vi')}"
+                                   class="rounded-full px-3 py-1.5 transition"
+                                   th:classappend="${#locale.language == 'vi'} ? 'bg-[#006AFF] text-white' : 'hover:bg-[#C2E0FF]'">VI</a>
+                            </div>
+                        </div>
+                    </section>
+                    <form th:action="@{/logout}" method="post" class="m-0">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                        <button type="submit" class="flex w-full items-center justify-center gap-2 rounded-[20px] bg-[#FFE2D6] px-5 py-4 text-sm font-semibold text-[#8B2E01] transition hover:bg-[#FFE2D6]">
+                            <span class="material-symbols-outlined text-[18px]">logout</span>
+                            Sign Out
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
-</header>
+
+
+</th:block>

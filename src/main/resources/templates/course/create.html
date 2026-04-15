@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head(${pageTitle})}"></head>
+<body class="bg-white text-stone-950">
+<div class="min-h-screen flex flex-col">
+    <header th:replace="~{fragments/header :: header}"></header>
+
+    <main class="flex-1 mx-auto w-full max-w-[1280px] px-4 py-8 lg:px-8">
+        <div th:replace="~{fragments/alerts :: alerts}"></div>
+
+        <!-- ═══ UNIFIED FORM SHELL ═══ -->
+        <section class="overflow-hidden rounded-[32px] border border-stone-200 bg-white shadow-[0_20px_50px_rgba(0,0,0,0.04)]">
+            
+            <!-- Hero Header -->
+            <div class="relative border-b border-stone-100 bg-gradient-to-br from-[#001f6b] via-[#0047AB] to-[#0071e3] px-8 py-10 text-white lg:px-12">
+                <div class="absolute inset-0 opacity-[0.07]" 
+                     style="background-image: linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px); background-size: 30px 30px;">
+                </div>
+                
+                <div class="relative z-10 max-w-4xl">
+                    <div class="mb-4 flex items-center gap-2 text-[0.7rem] font-bold uppercase tracking-[0.25em] text-blue-100/90">
+                        <span class="h-1.5 w-1.5 rounded-full bg-blue-400"></span>
+                        <span th:text="${editMode ? 'Course Management' : 'Educational Unit'}">New Course</span>
+                    </div>
+                    <h1 class="font-['DM_Serif_Display'] text-5xl leading-tight tracking-[-0.03em]">
+                        <span th:text="${editMode ? 'Edit Course' : 'Create Course'}">Create Course</span>
+                    </h1>
+                    <p class="mt-4 text-base leading-relaxed text-blue-50/80" th:text="${pageSubtitle}">
+                        Define the course structure within a semester and configure automatic generation rules.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Form Body -->
+            <form th:action="${editMode} ? @{/courses/{id}/edit(id=${courseId})} : @{/courses/create}"
+                  th:object="${courseForm}"
+                  method="post"
+                  class="flex flex-col lg:flex-row">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+                <!-- Left Content: Primary Fields -->
+                <div class="flex-1 border-r border-stone-100 px-8 py-10 lg:px-12">
+                    <div class="max-w-3xl space-y-12">
+                        
+                        <div class="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700" th:if="${#fields.hasGlobalErrors()}">
+                            <p class="flex items-center gap-2" th:each="error : ${#fields.globalErrors()}">
+                                <span class="material-symbols-outlined text-[20px]">error</span>
+                                <span th:text="${error}">Error</span>
+                            </p>
+                        </div>
+
+                        <!-- Section 1: Context -->
+                        <section class="space-y-6">
+                            <h2 class="text-xl font-bold tracking-tight text-stone-900">Academic Context</h2>
+                            <div class="grid gap-6 md:grid-cols-2">
+                                <div class="space-y-2">
+                                    <label class="flex items-center gap-2 text-[0.68rem] font-bold uppercase tracking-[0.2em] text-stone-400" for="semesterId">
+                                        <span class="material-symbols-outlined text-[18px]">calendar_month</span>
+                                        Target Semester
+                                    </label>
+                                    <select class="w-full rounded-2xl border border-stone-200 bg-stone-50/50 px-5 py-4 transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100 outline-none"
+                                            id="semesterId" th:field="*{semesterId}">
+                                        <option value="">Select active semester</option>
+                                        <option th:each="semester : ${semesters}"
+                                                th:value="${semester.id}"
+                                                th:text="${semester.code + ' - ' + semester.name}">SP26 - Spring 2026</option>
+                                    </select>
+                                    <div class="text-xs font-semibold text-red-500" th:if="${#fields.hasErrors('semesterId')}" th:errors="*{semesterId}"></div>
+                                </div>
+
+                                <div class="space-y-2">
+                                    <label class="flex items-center gap-2 text-[0.68rem] font-bold uppercase tracking-[0.2em] text-stone-400" for="weekCount">
+                                        <span class="material-symbols-outlined text-[18px]">calendar_view_week</span>
+                                        Duration (Weeks)
+                                    </label>
+                                    <input class="w-full rounded-2xl border border-stone-200 bg-stone-50/50 px-5 py-4 transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100 outline-none"
+                                           id="weekCount" th:field="*{weekCount}" type="number" min="0" max="52" placeholder="10">
+                                    <div class="text-xs font-semibold text-red-500" th:if="${#fields.hasErrors('weekCount')}" th:errors="*{weekCount}"></div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- Section 2: Identity -->
+                        <section class="space-y-6">
+                            <h2 class="text-xl font-bold tracking-tight text-stone-900">Course Identity</h2>
+                            <div class="grid gap-6 md:grid-cols-2">
+                                <div class="space-y-2">
+                                    <label class="flex items-center gap-2 text-[0.68rem] font-bold uppercase tracking-[0.2em] text-stone-400" for="courseCode">
+                                        <span class="material-symbols-outlined text-[18px]">tag</span>
+                                        Course Code
+                                    </label>
+                                    <input class="w-full rounded-2xl border border-stone-200 bg-stone-50/50 px-5 py-4 font-['JetBrains_Mono'] text-lg transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100 outline-none"
+                                           id="courseCode" th:field="*{courseCode}" type="text" placeholder="SWE201">
+                                    <div class="text-xs font-semibold text-red-500" th:if="${#fields.hasErrors('courseCode')}" th:errors="*{courseCode}"></div>
+                                </div>
+
+                                <div class="space-y-2">
+                                    <label class="flex items-center gap-2 text-[0.68rem] font-bold uppercase tracking-[0.2em] text-stone-400" for="courseName">
+                                        <span class="material-symbols-outlined text-[18px]">menu_book</span>
+                                        Full Course Name
+                                    </label>
+                                    <input class="w-full rounded-2xl border border-stone-200 bg-stone-50/50 px-5 py-4 text-lg transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100 outline-none"
+                                           id="courseName" th:field="*{courseName}" type="text" placeholder="Software Engineering">
+                                    <div class="text-xs font-semibold text-red-500" th:if="${#fields.hasErrors('courseName')}" th:errors="*{courseName}"></div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- Section 3: Automation -->
+                        <section class="space-y-6" th:if="${!editMode}">
+                            <h2 class="text-xl font-bold tracking-tight text-stone-900">Automation Settings</h2>
+                            <label class="flex cursor-pointer items-start gap-4 rounded-[24px] border border-stone-200 bg-stone-50/50 p-6 transition hover:border-blue-200 hover:bg-blue-50/20">
+                                <input type="checkbox" th:field="*{createWeeklyAssignments}" class="mt-1 h-6 w-6 rounded-lg border-stone-300 text-blue-600 focus:ring-blue-500">
+                                <span class="block">
+                                    <span class="block font-bold text-stone-900">Generate weekly assignments automatically</span>
+                                    <span class="mt-2 block text-sm leading-relaxed text-stone-500">
+                                        System will initialize `Week 1` through `Week N` assignment workspaces upon course creation.
+                                    </span>
+                                </span>
+                            </label>
+                        </section>
+
+                        <!-- Actions Area -->
+                        <div class="flex items-center justify-between border-t border-stone-100 pt-10">
+                            <a class="flex items-center gap-2 text-sm font-semibold text-stone-500 transition hover:text-stone-900"
+                               th:href="${courseForm.semesterId != null} ? @{/semesters/{id}(id=${courseForm.semesterId})} : @{/semesters}">
+                                <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+                                Cancel and Return
+                            </a>
+
+                            <button class="flex items-center gap-3 rounded-2xl bg-gradient-to-r from-[#003da5] to-[#0071e3] px-8 py-4 text-base font-bold text-white shadow-lg shadow-blue-600/20 transition hover:scale-[1.02] active:scale-95" type="submit">
+                                <span class="material-symbols-outlined">save</span>
+                                <span th:text="${submitLabel}">Save Course</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Sidebar: Information/Guidelines -->
+                <aside class="w-full bg-stone-50/50 px-8 py-10 lg:w-[320px] lg:px-10">
+                    <div class="space-y-8">
+                        <section class="space-y-4">
+                            <p class="text-[0.65rem] font-bold uppercase tracking-[0.2em] text-stone-400">Contextual Help</p>
+                            <div class="space-y-6">
+                                <div class="flex gap-4">
+                                    <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-blue-600 shadow-sm">
+                                        <span class="material-symbols-outlined text-[18px]">info</span>
+                                    </div>
+                                    <div class="space-y-1">
+                                        <p class="text-sm font-bold text-stone-800">Hierarchical Structure</p>
+                                        <p class="text-[0.8rem] leading-relaxed text-stone-500">A course belongs to a specific semester and acts as a container for all weekly tasks.</p>
+                                    </div>
+                                </div>
+                                <div class="flex gap-4">
+                                    <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-blue-600 shadow-sm">
+                                        <span class="material-symbols-outlined text-[18px]">auto_awesome</span>
+                                    </div>
+                                    <div class="space-y-1">
+                                        <p class="text-sm font-bold text-stone-800">Auto-generation</p>
+                                        <p class="text-[0.8rem] leading-relaxed text-stone-500">Enabling automation saves time by pre-configuring placeholders for every academic week.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                        
+                        <hr class="border-stone-100">
+
+                        <section class="space-y-4">
+                            <p class="text-[0.65rem] font-bold uppercase tracking-[0.2em] text-stone-400">Assignment Flow</p>
+                            <p class="text-[0.8rem] leading-relaxed text-stone-500 italic">
+                                "Once the course is defined, you can immediately begin adding questions and evaluation testcases."
+                            </p>
+                        </section>
+                    </div>
+                </aside>
+            </form>
+        </section>
+    </main>
+
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+</div>
+</body>
+</html>

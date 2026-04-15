@@ -1,87 +1,220 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/head :: head('Semester Detail')}"></head>
-<body>
-<div class="app-shell">
-    <header th:replace="~{fragments/header :: header}"></header>
 
-    <div class="page-content">
-        <div class="app-layout">
-            <aside th:replace="~{fragments/sidebar :: sidebar('semesters')}"></aside>
+<head th:replace="~{fragments/head :: head(${semester.code} + ' - Semester')}"></head>
 
-            <main class="content-stack">
-                <div th:replace="~{fragments/alerts :: alerts}"></div>
+<body class="bg-white text-stone-950">
+    <div class="min-h-screen">
+        <header th:replace="~{fragments/header :: header}"></header>
 
-                <section class="content-card">
-                    <div class="page-header">
-                        <div>
-                            <h1 class="page-title">Semester Detail</h1>
-                            <p class="page-subtitle" th:text="${semester.code + ' - ' + semester.name}">Semester detail.</p>
+        <main class="mx-auto max-w-[1720px] px-4 py-6 lg:px-6">
+            <div th:replace="~{fragments/alerts :: alerts}"></div>
+
+            <section
+                class="rounded-[34px] bg-[#E2E8F0] px-6 py-6 shadow-[0_26px_64px_rgba(96,125,139,0.10)] lg:px-8">
+                <div class="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
+                    <div class="max-w-4xl">
+
+                        <div class="flex flex-wrap items-center gap-3">
+                            <span
+                                class="rounded-full bg-[#006AFF] px-3 py-1 text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-white"
+                                th:text="${semester.code}">SP26</span>
+                            <span
+                                class="rounded-full bg-white px-3 py-1 text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone-950 shadow-[0_8px_20px_rgba(96,125,139,0.08)]">
+                                Active Semester
+                            </span>
                         </div>
-                        <div class="page-actions">
-                            <a class="btn btn-primary" th:href="@{/assignments/create(semesterId=${semester.id})}">Create Assignment</a>
-                            <a class="btn btn-secondary" th:href="@{/dashboard}">Back to Dashboard</a>
-                        </div>
+                        <h1 class="mt-4 font-['Newsreader'] text-4xl font-semibold leading-none tracking-[-0.04em] text-stone-950 lg:text-[4rem]"
+                            th:text="${semester.name}">Spring 2026</h1>
+                        <p class="mt-4 text-sm leading-6 text-stone-800"
+                            th:text="${semester.startDate + ' to ' + semester.endDate}">
+                            2026-01-01 to 2026-05-31
+                        </p>
                     </div>
 
-                    <div class="info-list">
-                        <div class="info-row">
-                            <span class="info-label">Semester ID</span>
-                            <strong th:text="${semester.id}">1</strong>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">Date Range</span>
-                            <strong th:text="${semester.startDate + ' to ' + semester.endDate}">Dates</strong>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">Assignments</span>
-                            <strong th:text="${#lists.size(assignments)}">0</strong>
-                        </div>
-                    </div>
-                </section>
+                    <div class="flex flex-wrap items-center gap-2" x-data="{ optionsOpen: false }">
+                        <a class="inline-flex items-center gap-2 rounded-full bg-[#006AFF] px-5 py-3 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(0,106,255,0.2)] transition hover:bg-[#0056D6]"
+                            th:href="@{/courses/create(semesterId=${semester.id})}">
+                            <span class="material-symbols-outlined text-[18px]">school</span>
+                            New Course
+                        </a>
+                        
+                        <div class="flex items-center gap-2">
+                            <a class="inline-flex items-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-semibold text-stone-950 shadow-[0_10px_24px_rgba(96,125,139,0.10)] transition hover:bg-[#E0F0FF] hover:text-[#006AFF]"
+                                th:href="@{/semesters/{id}/edit(id=${semester.id})}">
+                                <span class="material-symbols-outlined text-[18px]">edit_calendar</span>
+                                Edit Semester
+                            </a>
 
-                <section class="table-card">
-                    <div class="page-header">
-                        <div>
-                            <h2 class="page-title">Assignments</h2>
-                            <p class="page-subtitle">Assignments under this semester are ready for problem and testcase setup.</p>
-                        </div>
-                    </div>
+                            <div class="relative">
+                                <button @click="optionsOpen = !optionsOpen"
+                                        @click.outside="optionsOpen = false"
+                                        class="inline-flex h-[44px] w-[44px] items-center justify-center rounded-full bg-white shadow-[0_10px_24px_rgba(96,125,139,0.10)] transition hover:bg-stone-50 text-stone-950 hover:text-stone-700"
+                                        type="button"
+                                        aria-label="More options">
+                                    <span class="material-symbols-outlined text-[22px]">more_vert</span>
+                                </button>
 
-                    <div class="empty-state" th:if="${#lists.isEmpty(assignments)}">
-                        <p>No assignments yet for this semester.</p>
-                    </div>
-
-                    <table class="data-table" th:unless="${#lists.isEmpty(assignments)}">
-                        <thead>
-                        <tr>
-                            <th>Title</th>
-                            <th>Mode</th>
-                            <th>Total Score</th>
-                            <th>Problems</th>
-                            <th>Actions</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr th:each="assignment : ${assignments}">
-                            <td th:text="${assignment.title}">Lab 01</td>
-                            <td th:text="${assignment.gradingMode}">JAVA_CORE</td>
-                            <td th:text="${assignment.totalScore}">100.00</td>
-                            <td th:text="${assignment.problemCount}">0</td>
-                            <td>
-                                <div class="table-actions">
-                                    <a class="btn btn-secondary" th:href="@{/assignments/{id}(id=${assignment.id})}">View Detail</a>
+                                <div x-show="optionsOpen"
+                                     x-transition.opacity.duration.200ms
+                                     x-cloak
+                                     class="absolute right-0 mt-2 w-48 rounded-[16px] border border-stone-200 bg-white p-2 shadow-[0_14px_32px_rgba(0,0,0,0.1)] z-50">
+                                    <form th:action="@{/semesters/{id}/delete(id=${semester.id})}" method="post" class="m-0"
+                                        onsubmit="return confirm('DANGER: Delete this semester? This action will destroy all related courses and assignments.');">
+                                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                        <button class="flex w-full items-center gap-2 rounded-[10px] px-3 py-2 text-sm font-semibold text-[#8B2E01] transition hover:bg-[#FFE2D6]"
+                                            type="submit">
+                                            <span class="material-symbols-outlined text-[18px]">delete</span>
+                                            Delete Semester
+                                        </button>
+                                    </form>
                                 </div>
-                            </td>
-                        </tr>
-                        </tbody>
-                    </table>
-                </section>
-            </main>
-        </div>
-    </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-    <footer th:replace="~{fragments/footer :: footer}"></footer>
-</div>
+            </section>
+
+            <section class="mt-6 overflow-hidden rounded-[34px] bg-white shadow-[0_22px_60px_rgba(96,125,139,0.08)]">
+                <div class="border-b border-stone-200/80 px-6 py-6 lg:px-8">
+                    <h2
+                        class="font-['Newsreader'] text-4xl font-semibold leading-none tracking-[-0.04em] text-stone-950">
+                        Courses</h2>
+                </div>
+
+                <div class="px-4 py-5 lg:px-6 lg:py-6"
+                    th:if="${semesterBoard != null and !#lists.isEmpty(semesterBoard.courses)}"
+                    th:with="initialCourseKey=${highlightCourseId != null ? 'course-' + highlightCourseId : 'course-' + semesterBoard.courses[0].course.id}"
+                    th:attr="x-data=|{ activeCourse: '${initialCourseKey}' }|">
+
+                    <div class="grid gap-3 pb-1 md:grid-cols-3 xl:grid-cols-4">
+                        <button th:each="courseBoard : ${semesterBoard.courses}" type="button"
+                            x-on:click="activeCourse = $el.dataset.courseKey"
+                            x-bind:class="activeCourse === $el.dataset.courseKey ? 'border-[#0047A6] bg-[#0047A6] text-white shadow-[0_18px_34px_rgba(0,71,166,0.24)]' : 'border-[#dbe5f5] bg-white text-stone-950 shadow-[0_10px_24px_rgba(0,35,102,0.06)] hover:border-[#a8bfec] hover:bg-[#f8fbff] hover:shadow-[0_14px_30px_rgba(0,35,102,0.1)]'"
+                            th:attr="data-course-key=|course-${courseBoard.course.id}|"
+                            class="rounded-[26px] border px-5 py-5 text-left transition">
+                            <p class="text-[1.02rem] font-semibold leading-6"
+                                th:text="${courseBoard.course.courseCode + ' | ' + courseBoard.course.courseName}">
+                                PR1 | Programming 1</p>
+                        </button>
+                    </div>
+
+                    <th:block th:each="courseBoard : ${semesterBoard.courses}">
+                        <section x-show="activeCourse === $el.dataset.courseKey"
+                            th:attr="data-course-key=|course-${courseBoard.course.id}|" x-cloak
+                            class="mt-6 space-y-5">
+                            <div
+                                class="flex flex-col gap-5 rounded-[30px] bg-gradient-to-r from-[#002f7a] via-[#0047A6] to-[#1f67c7] px-5 py-5 text-white shadow-[0_18px_40px_rgba(0,71,166,0.20)] lg:flex-row lg:items-end lg:justify-between">
+                                <div class="min-w-0">
+                                    <h3 class="text-2xl font-semibold leading-tight text-white lg:text-[2rem]"
+                                        th:text="${courseBoard.course.courseCode + ' | ' + courseBoard.course.courseName}">
+                                        PR1 | Programming 1</h3>
+                                    <p class="mt-3 max-w-3xl text-sm text-white/85"
+                                        th:text="${courseBoard.assignmentCount + ' assignments across ' + courseBoard.course.weekCount + ' configured week(s)'}">
+                                        0 assignments across 10 configured week(s)
+                                    </p>
+                                </div>
+
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <a class="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2.5 text-sm font-semibold text-[#002f7a] shadow-[0_12px_24px_rgba(0,35,102,0.16)] transition hover:bg-[#edf3ff]"
+                                        th:href="@{/courses/{id}/edit(id=${courseBoard.course.id})}">
+                                        <span class="material-symbols-outlined text-[18px]">edit</span>
+                                        Edit Course
+                                    </a>
+                                    <a class="inline-flex items-center gap-2 rounded-full border border-white/22 bg-white/12 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/18"
+                                        th:href="@{/assignments/create(semesterId=${semester.id}, courseId=${courseBoard.course.id})}">
+                                        <span class="material-symbols-outlined text-[18px]">add_circle</span>
+                                        New Assignment
+                                    </a>
+                                </div>
+                            </div>
+
+                            <div class="rounded-[30px] border border-dashed border-stone-300 bg-[#E2E8F0] px-5 py-10 text-center text-sm text-stone-800"
+                                th:if="${#lists.isEmpty(courseBoard.assignmentGroups)}">
+                                No assignment exists in this course yet.
+                            </div>
+
+                            <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4"
+                                th:if="${!#lists.isEmpty(courseBoard.assignmentGroups)}">
+                                <article th:each="group : ${courseBoard.assignmentGroups}"
+                                    class="rounded-[30px] bg-[#E2E8F0] p-4 shadow-[0_14px_30px_rgba(96,125,139,0.08)]">
+                                    <div class="flex items-start justify-between gap-3">
+                                        <div class="min-w-0">
+                                            <div class="flex items-start gap-2">
+                                                <span
+                                                    class="material-symbols-outlined mt-0.5 shrink-0 text-[18px] text-[#006AFF]"
+                                                    th:text="${group.icon}">calendar_view_week</span>
+                                                <h4 class="text-sm font-semibold uppercase tracking-[0.18em] text-stone-950 break-words"
+                                                    th:text="${group.label}">Week 1</h4>
+                                            </div>
+                                        </div>
+                                        <span
+                                            class="shrink-0 whitespace-nowrap rounded-full bg-white px-3 py-1 text-[0.72rem] font-semibold text-stone-950"
+                                            th:text="${#lists.size(group.assignments) == 1 ? '1 assignment' : #lists.size(group.assignments) + ' assignments'}">0
+                                            assignments</span>
+                                    </div>
+
+                                    <div class="mt-4 space-y-3">
+                                        <article th:each="assignment : ${group.assignments}"
+                                            class="cursor-pointer rounded-[22px] bg-white px-4 py-4 shadow-[0_10px_22px_rgba(96,125,139,0.06)] transition hover:-translate-y-0.5 hover:shadow-[0_16px_28px_rgba(96,125,139,0.12)]"
+                                            role="link" tabindex="0"
+                                            th:onclick="|if(!event.target.closest('a,button,form')) window.location.href='@{/assignments/{id}(id=${assignment.id})}'|"
+                                            th:onkeydown="|if((event.key==='Enter'||event.key===' ')&&!event.target.closest('a,button,form')) { event.preventDefault(); window.location.href='@{/assignments/{id}(id=${assignment.id})}'; }|">
+                                            <div class="flex items-start justify-between gap-3">
+                                                <div class="min-w-0">
+                                                    <div class="flex flex-wrap items-center gap-2">
+                                                        <span
+                                                            class="rounded-full bg-[#E0F0FF] px-2.5 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-[#006AFF]"
+                                                            th:text="${assignment.gradingMode}">JAVA_CORE</span>
+                                                        <span
+                                                            class="rounded-full bg-[#FFE2D6] px-2.5 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-[#8B2E01]"
+                                                            th:text="${assignment.outputNormalizationPolicy}">STRICT</span>
+                                                    </div>
+                                                    <p class="mt-3 line-clamp-2 text-base font-semibold leading-6 text-stone-950 break-words"
+                                                        title="Assignment Name" th:title="${assignment.assignmentName}"
+                                                        th:text="${assignment.assignmentName}">Ass1 - Arrays</p>
+                                                    <p class="mt-2 text-sm text-stone-800"
+                                                        th:text="${assignment.plagiarismThreshold + '% threshold'}">80%
+                                                        threshold</p>
+                                                </div>
+                                                <span
+                                                    class="material-symbols-outlined text-[20px] text-stone-400">arrow_outward</span>
+                                            </div>
+
+                                            <div class="mt-4 flex flex-wrap items-center justify-end gap-2">
+                                                <a class="inline-flex h-11 w-11 items-center justify-center rounded-full bg-[#f3efe8] text-stone-950 transition hover:bg-white"
+                                                    th:href="@{/assignments/{id}/edit(id=${assignment.id})}"
+                                                    title="Edit assignment" aria-label="Edit assignment">
+                                                    <span class="material-symbols-outlined text-[18px]">edit</span>
+                                                </a>
+                                                <form th:if="${assignmentCanDelete[assignment.id]}"
+                                                    th:action="@{/assignments/{id}/delete(id=${assignment.id})}"
+                                                    method="post" class="m-0"
+                                                    onsubmit="return confirm('Delete this assignment?');">
+                                                    <input type="hidden" th:name="${_csrf.parameterName}"
+                                                        th:value="${_csrf.token}">
+                                                    <button
+                                                        class="inline-flex h-11 w-11 items-center justify-center rounded-full bg-[#FFE2D6] text-[#8B2E01] transition hover:bg-[#ffd6c5]"
+                                                        type="submit" title="Delete assignment"
+                                                        aria-label="Delete assignment">
+                                                        <span
+                                                            class="material-symbols-outlined text-[18px]">delete</span>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </article>
+                                    </div>
+                                </article>
+                            </div>
+                        </section>
+                    </th:block>
+                </div>
+            </section>
+        </main>
+
+        <footer th:replace="~{fragments/footer :: footer}"></footer>
+    </div>
 </body>
+
 </html>

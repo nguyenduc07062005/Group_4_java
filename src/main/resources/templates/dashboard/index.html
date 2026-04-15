@@ -1,126 +1,806 @@
-<!DOCTYPE html>
+<!doctype html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/head :: head('Dashboard')}"></head>
-<body>
-<div class="app-shell">
-    <header th:replace="~{fragments/header :: header}"></header>
+  <head th:replace="~{fragments/head :: head('Dashboard - JavaGrader')}"></head>
+  <body class="bg-white text-stone-950">
+    <div class="min-h-screen flex flex-col">
+      <header th:replace="~{fragments/header :: header}"></header>
+      <main class="flex-1 mx-auto w-full max-w-[1820px] px-4 pb-6 pt-6 lg:px-8">
+        <div th:replace="~{fragments/alerts :: alerts}"></div>
 
-    <div class="page-content">
-        <div class="app-layout">
-            <aside th:replace="~{fragments/sidebar :: sidebar('dashboard')}"></aside>
+        <style>
+          [x-cloak] {
+            display: none !important;
+          }
+        </style>
 
-            <main class="content-stack">
-                <div th:replace="~{fragments/alerts :: alerts}"></div>
 
-                <section class="content-card">
-                    <div class="page-header">
-                        <div>
-                            <h1 class="page-title">Dashboard</h1>
-                            <p class="page-subtitle">Phase 1 workspace for semester, assignment, problem, and testcase setup.</p>
-                        </div>
-                        <div class="page-actions">
-                            <a class="btn btn-primary" th:href="@{/semesters/create}">Create Semester</a>
-                            <a class="btn btn-secondary" th:href="@{/assignments/create}">Create Assignment</a>
-                        </div>
+        <!-- ═══ SEMESTER OVERVIEW HERO ═══ -->
+        <section class="semester-overview-hero">
+
+          <!-- Background layers -->
+          <div class="soh-bg-gradient"></div>
+          <div class="soh-bg-grid"></div>
+          <div class="soh-bg-glow"></div>
+
+          <div class="soh-inner">
+            <!-- Top row: headline (left) + actions (right) -->
+            <div class="soh-topbar">
+              <!-- Headline at top-left -->
+              <div class="soh-headline-block">
+                <h1 class="soh-headline">Semester<br><em>Overview</em></h1>
+                <p class="soh-tagline">All your academic workspaces — tracked, graded, delivered.</p>
+              </div>
+              <!-- Actions at top-right -->
+              <div class="soh-actions">
+                <a class="soh-btn soh-btn-glass" th:href="@{/semesters/create}">
+                  <span class="material-symbols-outlined">add_circle</span>
+                  New Semester
+                </a>
+                <a class="soh-btn soh-btn-ghost"
+                   th:if="${dashboard.hasSemesters()}"
+                   th:href="${dashboard.semesters[0].createCourseUrl}">
+                  <span class="material-symbols-outlined">school</span>
+                  Add Course
+                </a>
+                <a class="soh-btn soh-btn-amber"
+                   th:if="${dashboard.hasSemesters()}"
+                   th:href="${dashboard.semesters[0].createAssignmentUrl}">
+                  <span class="material-symbols-outlined">assignment_add</span>
+                  Add Assignment
+                </a>
+              </div>
+            </div>
+
+            <!-- Stat cards -->
+            <div class="soh-stats-grid">
+              <article
+                th:each="stat : ${dashboard.stats}"
+                class="soh-stat-card">
+                <div class="soh-stat-icon-wrap">
+                  <span class="material-symbols-outlined soh-stat-icon" th:text="${stat.icon}">school</span>
+                </div>
+                <div class="soh-stat-body">
+                  <p class="soh-stat-label" th:text="${stat.label}">Courses</p>
+                  <p class="soh-stat-value" th:text="${stat.value}">0</p>
+                </div>
+                <div class="soh-stat-bar"></div>
+              </article>
+            </div>
+          </div>
+
+          <style>
+            /* ─── Hero wrapper ─── */
+            .semester-overview-hero {
+              position: relative;
+              border-radius: 28px;
+              overflow: hidden;
+              padding: 0;
+              isolation: isolate;
+            }
+
+            /* ─── Background layers ─── */
+            .soh-bg-gradient {
+              position: absolute;
+              inset: 0;
+              background: linear-gradient(135deg,
+                #001f6b 0%,
+                #0047AB 40%,
+                #005fd4 68%,
+                #0071e3 100%);
+              z-index: 0;
+            }
+
+            .soh-bg-grid {
+              position: absolute;
+              inset: 0;
+              background-image:
+                linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px);
+              background-size: 36px 36px;
+              z-index: 1;
+              mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%);
+            }
+
+            .soh-bg-glow {
+              position: absolute;
+              top: -60px;
+              right: -60px;
+              width: 420px;
+              height: 420px;
+              border-radius: 50%;
+              background: radial-gradient(circle, rgba(70,160,255,0.28) 0%, transparent 70%);
+              z-index: 1;
+              pointer-events: none;
+            }
+
+            /* ─── Content wrapper ─── */
+            .soh-inner {
+              position: relative;
+              z-index: 2;
+              padding: 36px 40px 40px;
+              display: flex;
+              flex-direction: column;
+              gap: 32px;
+            }
+
+            /* ─── Top bar ─── */
+            .soh-topbar {
+              display: flex;
+              align-items: flex-start;
+              justify-content: space-between;
+              flex-wrap: wrap;
+              gap: 16px;
+            }
+
+
+            .soh-eyebrow {
+              display: inline-flex;
+              align-items: center;
+              gap: 8px;
+              font-size: 0.72rem;
+              font-weight: 700;
+              letter-spacing: 0.22em;
+              text-transform: uppercase;
+              color: rgba(180,210,255,0.85);
+            }
+
+            .soh-dot {
+              display: inline-block;
+              width: 7px;
+              height: 7px;
+              border-radius: 50%;
+              background: #4fc3f7;
+              box-shadow: 0 0 0 3px rgba(79,195,247,0.3);
+              animation: soh-pulse 2.4s ease-in-out infinite;
+            }
+
+            @keyframes soh-pulse {
+              0%, 100% { box-shadow: 0 0 0 3px rgba(79,195,247,0.3); }
+              50%       { box-shadow: 0 0 0 6px rgba(79,195,247,0.0); }
+            }
+
+            .soh-actions {
+              display: flex;
+              flex-wrap: wrap;
+              gap: 8px;
+            }
+
+            .soh-btn {
+              display: inline-flex;
+              align-items: center;
+              gap: 7px;
+              padding: 9px 18px;
+              border-radius: 999px;
+              font-size: 0.82rem;
+              font-weight: 600;
+              text-decoration: none;
+              transition: all 0.18s ease;
+              border: 1px solid transparent;
+              white-space: nowrap;
+            }
+
+            .soh-btn .material-symbols-outlined { font-size: 17px; }
+
+            .soh-btn-glass {
+              background: rgba(255,255,255,0.18);
+              color: #fff;
+              border-color: rgba(255,255,255,0.25);
+              backdrop-filter: blur(8px);
+            }
+            .soh-btn-glass:hover {
+              background: rgba(255,255,255,0.28);
+              border-color: rgba(255,255,255,0.4);
+            }
+
+            .soh-btn-ghost {
+              background: rgba(255,255,255,0.10);
+              color: rgba(255,255,255,0.88);
+              border-color: rgba(255,255,255,0.18);
+            }
+            .soh-btn-ghost:hover {
+              background: rgba(255,255,255,0.20);
+              color: #fff;
+            }
+
+            .soh-btn-amber {
+              background: linear-gradient(135deg, #f59e0b, #d97706);
+              color: #fff;
+              box-shadow: 0 4px 14px rgba(217,119,6,0.35);
+            }
+            .soh-btn-amber:hover {
+              background: linear-gradient(135deg, #fbbf24, #f59e0b);
+              box-shadow: 0 6px 20px rgba(217,119,6,0.45);
+              transform: translateY(-1px);
+            }
+
+            /* ─── Headline ─── */
+            .soh-headline-block {
+              display: flex;
+              flex-direction: column;
+              gap: 10px;
+            }
+
+            .soh-headline {
+              margin: 0;
+              font-family: 'Newsreader', Georgia, serif;
+              font-size: clamp(3.4rem, 7vw, 5.5rem);
+              font-weight: 700;
+              line-height: 1.0;
+              letter-spacing: -0.04em;
+              color: #fff;
+            }
+
+
+            .soh-headline em {
+              font-style: italic;
+              color: #a8d4ff;
+            }
+
+            .soh-tagline {
+              margin: 0;
+              font-size: 0.88rem;
+              color: #ffffff;
+              font-weight: 400;
+              max-width: 480px;
+              opacity: 0.9;
+            }
+
+            /* ─── Stats grid ─── */
+            .soh-stats-grid {
+              display: grid;
+              grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+              gap: 14px;
+            }
+
+            .soh-stat-card {
+              position: relative;
+              background: rgba(255,255,255,0.10);
+              border: 1px solid rgba(255,255,255,0.16);
+              border-radius: 20px;
+              padding: 20px 22px 18px;
+              backdrop-filter: blur(12px);
+              overflow: hidden;
+              transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+              display: flex;
+              flex-direction: column;
+              gap: 14px;
+            }
+
+            .soh-stat-card:hover {
+              transform: translateY(-3px);
+              background: rgba(255,255,255,0.15);
+              box-shadow: 0 16px 40px rgba(0,20,80,0.3);
+            }
+
+            .soh-stat-icon-wrap {
+              display: inline-flex;
+              align-items: center;
+              justify-content: center;
+              width: 44px;
+              height: 44px;
+              border-radius: 14px;
+              background: rgba(255,255,255,0.15);
+              border: 1px solid rgba(255,255,255,0.20);
+            }
+
+            .soh-stat-icon {
+              font-size: 22px;
+              color: #a8d4ff;
+              font-variation-settings: 'FILL' 0, 'wght' 350, 'GRAD' 0, 'opsz' 24;
+            }
+
+            .soh-stat-body {
+              display: flex;
+              flex-direction: column;
+              gap: 4px;
+            }
+
+            .soh-stat-label {
+              margin: 0;
+              font-size: 0.68rem;
+              font-weight: 700;
+              letter-spacing: 0.20em;
+              text-transform: uppercase;
+              color: #ffffff;
+              opacity: 0.88;
+            }
+
+            .soh-stat-value {
+              margin: 0;
+              font-family: 'Newsreader', Georgia, serif;
+              font-size: 2.6rem;
+              font-weight: 700;
+              line-height: 1;
+              letter-spacing: -0.04em;
+              color: #fff;
+            }
+
+            /* accent bar at card bottom */
+            .soh-stat-bar {
+              position: absolute;
+              bottom: 0;
+              left: 0;
+              right: 0;
+              height: 3px;
+              background: linear-gradient(90deg, rgba(79,195,247,0.6), rgba(100,160,255,0.0));
+              border-radius: 0 0 20px 20px;
+              opacity: 0;
+              transition: opacity 0.2s ease;
+            }
+
+            .soh-stat-card:hover .soh-stat-bar {
+              opacity: 1;
+            }
+
+            /* Responsive */
+            @media (max-width: 640px) {
+              .soh-inner { padding: 24px 20px 28px; gap: 24px; }
+              .soh-headline { font-size: 2.2rem; }
+            }
+          </style>
+        </section>
+
+
+        <div
+          class="mt-6 grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_360px]"
+        >
+          <!-- Left Column -->
+          <div class="space-y-6">
+            <!-- Main Board Section -->
+            <section
+              class="overflow-hidden rounded-[34px] bg-white shadow-[0_22px_60px_rgba(28,25,23,0.08)]"
+            >
+              <div class="border-b border-stone-200/80 px-6 py-6 lg:px-8">
+                <div
+                  class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"
+                >
+                  <div>
+                    <p
+                      class="text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-stone-700"
+                    >
+                      Main Board
+                    </p>
+                  </div>
+                  <a
+                    class="inline-flex items-center gap-2 rounded-full border border-stone-200 bg-white px-4 py-3 text-sm font-semibold text-stone-950 transition hover:bg-stone-50"
+                    th:href="@{/semesters}"
+                  >
+                    <span class="material-symbols-outlined text-[18px]"
+                      >view_list</span
+                    >
+                    Semester board
+                  </a>
+                </div>
+              </div>
+
+              <div class="px-6 py-5 lg:px-8 lg:py-6">
+                <div
+                  class="flex flex-col items-center justify-center rounded-[26px] border-2 border-dashed border-stone-300 bg-stone-50 px-6 py-20 text-center"
+                  th:if="${!dashboard.hasSemesters()}"
+                >
+                  <span
+                    class="material-symbols-outlined mb-4 text-[48px] text-[#0047a6]/30"
+                    >school</span
+                  >
+                  <p class="text-xl font-semibold text-stone-900">
+                    No active semester yet
+                  </p>
+                  <p class="mt-2 max-w-md text-base text-stone-600">
+                    Create your first semester to start organizing courses and assignment workspaces.
+                  </p>
+                  <a th:href="@{/semesters/create}"
+                     class="mt-5 inline-flex items-center gap-2 rounded-2xl bg-[#0047a6] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#002366]">
+                      <span class="material-symbols-outlined text-[18px]">add_circle</span>
+                      Create Semester
+                  </a>
+                </div>
+
+                <div
+                  class="grid gap-5 grid-cols-[repeat(auto-fill,minmax(280px,1fr))]"
+                  th:if="${dashboard.hasSemesters()}"
+                >
+                  <a
+                    th:each="semester : ${dashboard.semesters}"
+                    th:href="${semester.openUrl}"
+                    class="group flex flex-col justify-between rounded-[28px] border border-stone-200 bg-white p-5 shadow-[0_8px_20px_rgba(0,0,0,0.02)] transition hover:-translate-y-1 hover:shadow-[0_20px_40px_rgba(0,106,255,0.06)]"
+                  >
+                    <div class="min-w-0">
+                      <div class="flex items-center gap-3">
+                        <span
+                          class="whitespace-nowrap rounded-full bg-[#006AFF] px-3 py-1 text-[0.68rem] font-bold uppercase tracking-[0.18em] text-white shadow-[0_4px_12px_rgba(0,106,255,0.2)]"
+                          th:text="${semester.code}"
+                          >SUM26</span
+                        >
+                        <span
+                          class="truncate text-[0.7rem] font-medium text-stone-600"
+                          th:text="${semester.schedule}"
+                          >11 May 2026 - 11 Sep 2026</span
+                        >
+                      </div>
+                      <h3
+                        class="mt-4 line-clamp-2 font-['Newsreader'] text-2xl font-bold leading-tight tracking-[-0.02em] text-stone-950 group-hover:text-[#006AFF] transition-colors"
+                        title="Semester Details"
+                        th:title="${semester.name}"
+                        th:text="${semester.name}"
+                      >
+                        Summer 2026
+                      </h3>
                     </div>
 
-                    <div class="summary-grid">
-                        <article class="stat-card">
-                            <p class="stat-label">Semesters</p>
-                            <p class="stat-value" th:text="${#lists.size(semesters)}">0</p>
-                            <p class="stat-meta">Stored in session so this branch can demo the full Phase 1 flow now.</p>
-                        </article>
-                        <article class="stat-card">
-                            <p class="stat-label">Assignments</p>
-                            <p class="stat-value" th:text="${#lists.size(assignments)}">0</p>
-                            <p class="stat-meta">Each assignment can immediately lead to problem and testcase setup.</p>
-                        </article>
+                    <div
+                      class="mt-8 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-stone-50 pt-5 min-w-0"
+                    >
+                      <div class="flex items-center gap-2">
+                        <span
+                          class="material-symbols-outlined text-[18px] text-stone-400 group-hover:text-[#006AFF] transition-colors"
+                          >school</span
+                        >
+                        <span
+                          class="text-[0.72rem] font-bold text-stone-800"
+                          th:text="${semester.courseCount + ' courses'}"
+                          >2 courses</span
+                        >
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <span
+                          class="material-symbols-outlined text-[18px] text-stone-400 group-hover:text-[#006AFF] transition-colors"
+                          >assignment</span
+                        >
+                        <span
+                          class="text-[0.72rem] font-bold text-stone-800"
+                          th:text="${semester.assignmentCount + ' assignments'}"
+                          >21 assignments</span
+                        >
+                      </div>
                     </div>
-                </section>
+                  </a>
+                </div>
+              </div>
+            </section>
 
-                <section class="table-card">
-                    <div class="page-header">
-                        <div>
-                            <h2 class="page-title">Semesters</h2>
-                            <p class="page-subtitle">Create semesters first so assignments have a valid owner.</p>
-                        </div>
+            <!-- Action Table Section (Moved here) -->
+            <section
+              id="action-table"
+              class="overflow-hidden rounded-[32px] bg-white shadow-[0_18px_52px_rgba(28,25,23,0.07)]"
+            >
+              <div class="border-b border-stone-200 px-6 py-6 lg:px-8">
+                <p
+                  class="text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-stone-700"
+                >
+                  Action Table
+                </p>
+                <h2
+                  class="mt-2 font-['Newsreader'] text-3xl font-semibold leading-none tracking-[-0.03em] text-stone-950"
+                >
+                  Assignments needing action.
+                </h2>
+              </div>
+
+              <div class="overflow-x-auto" th:if="${dashboard.hasTaskRows()}">
+                <table class="min-w-full text-left">
+                  <thead
+                    class="border-b border-stone-200 bg-stone-50 text-[0.68rem] font-bold uppercase tracking-[0.18em] text-stone-800"
+                  >
+                    <tr>
+                      <th class="px-6 py-4">Assignment</th>
+                      <th class="px-6 py-4 text-center">Stage</th>
+                      <th class="px-6 py-4">Issue</th>
+                      <th class="px-6 py-4 text-right">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-stone-100 bg-white text-sm">
+                    <tr
+                      th:each="row : ${dashboard.taskRows}"
+                      class="hover:bg-stone-50 transition-colors"
+                    >
+                      <td class="px-6 py-5 max-w-[200px]">
+                        <p
+                          class="truncate font-bold text-stone-950"
+                          th:title="${row.assignmentName}"
+                          th:text="${row.assignmentName}"
+                        >
+                          Assignment
+                        </p>
+                        <p
+                          class="mt-0.5 truncate text-xs text-stone-600"
+                          th:title="${row.courseLabel}"
+                          th:text="${row.courseLabel}"
+                        >
+                          Course
+                        </p>
+                      </td>
+                      <td class="px-6 py-5 text-center">
+                        <span
+                          class="rounded-full bg-blue-50 px-3 py-1 text-[0.65rem] font-bold uppercase tracking-widest text-[#006AFF]"
+                          th:text="${row.stageLabel}"
+                          >Setup</span
+                        >
+                      </td>
+                      <td
+                        class="px-6 py-5 text-stone-800 break-words max-w-[240px]"
+                        th:text="${row.issue}"
+                      >
+                        Issue detail
+                      </td>
+                      <td class="px-6 py-5 text-right">
+                        <a
+                          class="rounded-full bg-stone-950 px-4 py-2 text-xs font-bold text-white transition hover:bg-[#006AFF]"
+                          th:href="${row.actionUrl}"
+                          th:text="${row.actionLabel}"
+                          >Open workspace</a
+                        >
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div
+                class="px-6 py-20 text-center text-lg font-medium text-stone-400"
+                th:if="${!dashboard.hasTaskRows()}"
+              >
+                Nothing waiting for action.
+              </div>
+            </section>
+          </div>
+
+          <!-- Right Column -->
+          <div class="space-y-6">
+            <aside class="space-y-6">
+              <section
+                id="attention-panel"
+                class="rounded-[30px] bg-[#fcfbf8] px-5 py-5 shadow-[0_18px_48px_rgba(28,25,23,0.07)]"
+              >
+                <div class="flex items-center justify-between px-1">
+                  <div>
+                    <p
+                      class="text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-stone-700"
+                    >
+                      Need Attention
+                    </p>
+                    <h2
+                      class="mt-2 font-['Newsreader'] text-2xl font-semibold leading-none tracking-[-0.03em] text-stone-950"
+                    >
+                      What needs action.
+                    </h2>
+                  </div>
+                  <span
+                    class="material-symbols-outlined rounded-2xl bg-stone-100 p-3 text-[18px] text-stone-900"
+                    >notification_important</span
+                  >
+                </div>
+
+                <div
+                  class="mt-5 space-y-3"
+                  th:if="${dashboard.hasAttentionItems()}"
+                >
+                  <a
+                    th:each="item : ${dashboard.attentionItems}"
+                    th:href="${item.actionUrl}"
+                    class="block rounded-[22px] border border-stone-200 bg-white px-4 py-4 transition hover:border-blue-400 hover:bg-blue-50/60"
+                  >
+                    <div class="flex items-start gap-3">
+                      <span
+                        class="material-symbols-outlined mt-0.5 text-[18px] text-[#006AFF]"
+                        th:text="${item.icon}"
+                        >build_circle</span
+                      >
+                      <div class="min-w-0">
+                        <p
+                          class="text-sm font-semibold text-stone-900"
+                          th:text="${item.title}"
+                        >
+                          Week 2 - Arrays
+                        </p>
+                        <p
+                          class="mt-1 text-[0.8rem] leading-snug text-stone-800"
+                          th:text="${item.detail}"
+                        >
+                          Every question needs testcase.
+                        </p>
+                        <p
+                          class="mt-2 text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-stone-600"
+                          th:text="${item.courseLabel}"
+                        >
+                          SWE201
+                        </p>
+                      </div>
                     </div>
+                  </a>
+                </div>
 
-                    <div class="empty-state" th:if="${#lists.isEmpty(semesters)}">
-                        <p>No semesters yet. Start by creating one, then attach assignments to it.</p>
+                <p
+                  class="mt-5 rounded-[20px] bg-white px-6 py-8 text-base font-medium text-center text-stone-800"
+                  th:if="${!dashboard.hasAttentionItems()}"
+                >
+                  The workspace is clear.
+                </p>
+              </section>
+
+              <section
+                class="rounded-[30px] bg-white px-5 py-5 shadow-[0_18px_48px_rgba(28,25,23,0.07)]"
+              >
+                <div class="flex items-center justify-between px-1">
+                  <div>
+                    <p
+                      class="text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-stone-700"
+                    >
+                      Running Batches
+                    </p>
+                    <h2
+                      class="mt-2 font-['Newsreader'] text-2xl font-semibold leading-none tracking-[-0.03em] text-stone-950"
+                    >
+                      Grading in motion.
+                    </h2>
+                  </div>
+                  <span
+                    class="material-symbols-outlined rounded-2xl bg-violet-50 p-3 text-[18px] text-violet-700"
+                    >manufacturing</span
+                  >
+                </div>
+
+                <div
+                  class="mt-5 space-y-4"
+                  th:if="${dashboard.hasRunningBatches()}"
+                >
+                  <article
+                    th:each="batch : ${dashboard.runningBatches}"
+                    class="rounded-[22px] bg-stone-50 px-4 py-4"
+                  >
+                    <div class="flex items-start justify-between gap-3 text-sm">
+                      <p
+                        class="font-semibold text-stone-900 truncate"
+                        th:text="${batch.assignmentName}"
+                      >
+                        Assignment
+                      </p>
+                      <span
+                        class="flex-none rounded-full bg-violet-100 px-2 py-0.5 text-[0.6rem] font-bold uppercase tracking-[0.1em] text-violet-800"
+                        >Running</span
+                      >
                     </div>
-
-                    <table class="data-table" th:unless="${#lists.isEmpty(semesters)}">
-                        <thead>
-                        <tr>
-                            <th>Code</th>
-                            <th>Name</th>
-                            <th>Dates</th>
-                            <th>Assignments</th>
-                            <th>Actions</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr th:each="semester : ${semesters}">
-                            <td th:text="${semester.code}">SP25</td>
-                            <td th:text="${semester.name}">Spring 2025</td>
-                            <td th:text="${semester.startDate + ' to ' + semester.endDate}">Dates</td>
-                            <td th:text="${semester.assignmentCount}">0</td>
-                            <td>
-                                <div class="table-actions">
-                                    <a class="btn btn-secondary" th:href="@{/semesters/{id}(id=${semester.id})}">View</a>
-                                    <a class="btn btn-primary" th:href="@{/assignments/create(semesterId=${semester.id})}">Create Assignment</a>
-                                </div>
-                            </td>
-                        </tr>
-                        </tbody>
-                    </table>
-                </section>
-
-                <section class="table-card">
-                    <div class="page-header">
-                        <div>
-                            <h2 class="page-title">Assignments</h2>
-                            <p class="page-subtitle">Each assignment detail page is the hub for problems and testcases.</p>
-                        </div>
+                    <div
+                      class="mt-3 h-1.5 overflow-hidden rounded-full bg-stone-200"
+                    >
+                      <div
+                        class="h-full rounded-full bg-[#006AFF]"
+                        th:style="'width:' + ${batch.progressPercent} + '%'"
+                      ></div>
                     </div>
+                    <a
+                      class="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-[#006AFF]"
+                      th:href="${batch.actionUrl}"
+                    >
+                      <span th:text="${batch.actionLabel}">Open batch</span>
+                      <span class="material-symbols-outlined text-[14px]"
+                        >arrow_forward</span
+                      >
+                    </a>
+                  </article>
+                </div>
 
-                    <div class="empty-state" th:if="${#lists.isEmpty(assignments)}">
-                        <p>No assignments yet. After a semester exists, create one and continue into problem setup.</p>
+                <p
+                  class="mt-5 rounded-[20px] bg-stone-50 px-6 py-10 text-center text-sm text-stone-600"
+                  th:if="${!dashboard.hasRunningBatches()}"
+                >
+                  No active batch right now.
+                </p>
+              </section>
+            </aside>
+
+            <!-- Analytics Panels (Moved here) -->
+            <div id="analytics-panels" class="space-y-6">
+              <section
+                class="rounded-[30px] bg-white px-5 py-5 shadow-[0_18px_52px_rgba(28,25,23,0.07)]"
+              >
+                <div class="flex items-center justify-between px-1">
+                  <div>
+                    <p
+                      class="text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-stone-700"
+                    >
+                      Usage Status
+                    </p>
+                  </div>
+                  <span
+                    class="material-symbols-outlined rounded-2xl bg-stone-100 p-2 text-[18px] text-stone-900"
+                    >stacked_bar_chart</span
+                  >
+                </div>
+
+                <div
+                  class="mt-6 space-y-5"
+                  th:if="${dashboard.hasCourseStatusBars()}"
+                >
+                  <article th:each="courseBar : ${dashboard.courseStatusBars}">
+                    <div
+                      class="flex items-center justify-between gap-3 text-xs font-bold"
+                    >
+                      <p
+                        class="text-stone-900"
+                        th:text="${courseBar.courseLabel}"
+                      >
+                        SWE201
+                      </p>
+                      <span
+                        class="text-stone-500"
+                        th:text="${courseBar.totalCount}"
+                        >0</span
+                      >
                     </div>
+                    <div
+                      class="mt-2.5 flex h-2 overflow-hidden rounded-full bg-stone-100"
+                    >
+                      <span
+                        class="bg-amber-300"
+                        th:style="'width:' + ${courseBar.setupPercent} + '%'"
+                      ></span>
+                      <span
+                        class="bg-sky-400"
+                        th:style="'width:' + ${courseBar.intakePercent} + '%'"
+                      ></span>
+                      <span
+                        class="bg-rose-400"
+                        th:style="'width:' + ${courseBar.plagiarismPercent} + '%'"
+                      ></span>
+                      <span
+                        class="bg-[#006AFF]"
+                        th:style="'width:' + ${courseBar.batchPercent} + '%'"
+                      ></span>
+                    </div>
+                  </article>
+                </div>
+              </section>
 
-                    <table class="data-table" th:unless="${#lists.isEmpty(assignments)}">
-                        <thead>
-                        <tr>
-                            <th>Title</th>
-                            <th>Semester</th>
-                            <th>Mode</th>
-                            <th>Total Score</th>
-                            <th>Problems</th>
-                            <th>Actions</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr th:each="assignment : ${assignments}">
-                            <td th:text="${assignment.title}">Lab 01</td>
-                            <td th:text="${assignment.semesterCode + ' - ' + assignment.semesterName}">SP25</td>
-                            <td th:text="${assignment.gradingMode}">JAVA_CORE</td>
-                            <td th:text="${assignment.totalScore}">100.00</td>
-                            <td th:text="${assignment.problemCount}">0</td>
-                            <td>
-                                <div class="table-actions">
-                                    <a class="btn btn-secondary" th:href="@{/assignments/{id}(id=${assignment.id})}">View Detail</a>
-                                </div>
-                            </td>
-                        </tr>
-                        </tbody>
-                    </table>
-                </section>
-            </main>
+              <section
+                class="rounded-[30px] bg-white px-5 py-5 shadow-[0_18px_52px_rgba(28,25,23,0.07)]"
+              >
+                <div class="flex items-center justify-between px-1">
+                  <div>
+                    <p
+                      class="text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-stone-700"
+                    >
+                      Submission Load
+                    </p>
+                  </div>
+                  <span
+                    class="material-symbols-outlined rounded-2xl bg-stone-100 p-2 text-[18px] text-stone-900"
+                    >bar_chart</span
+                  >
+                </div>
+
+                <div
+                  class="mt-6 space-y-4"
+                  th:if="${dashboard.hasWeekLoadBars()}"
+                >
+                  <article th:each="week : ${dashboard.weekLoadBars}">
+                    <div
+                      class="flex items-center justify-between gap-3 text-xs font-bold"
+                    >
+                      <p class="text-stone-900" th:text="${week.label}">
+                        Week 1
+                      </p>
+                      <span
+                        class="text-stone-500"
+                        th:text="${week.submissionCount}"
+                        >0</span
+                      >
+                    </div>
+                    <div
+                      class="mt-2 h-1.5 overflow-hidden rounded-full bg-stone-100"
+                    >
+                      <div
+                        class="h-full rounded-full bg-[#006AFF]"
+                        th:style="'width:' + ${week.widthPercent} + '%'"
+                      ></div>
+                    </div>
+                  </article>
+                </div>
+              </section>
+            </div>
+          </div>
         </div>
+      </main>
+      <footer th:replace="~{fragments/footer :: footer}"></footer>
     </div>
-
-    <footer th:replace="~{fragments/footer :: footer}"></footer>
-</div>
-</body>
+  </body>
 </html>
